@@ -1,0 +1,26 @@
+¿Tienes España un problema de productividad? En mi opinión, sí, de hecho lo cité hace como uno de los principales problemas a resolver de nuestra economía a principios de año. Pero en los comentarios hubo quién opinó que en España si somos productivos. Dado que se trata de un tema que requiere estudio creo que era interesante verlo en detalle.
+
+¿Qué es la productividad?
+
+La productividad es la cantidad de producto o servicio por insumo de cada factor utilizado por unidad de tiempo. Es decir, seremos más productivos cuantos menos inputs (tiempo y recursos) necesitemos para producir más outputs (productos y servicios). La productividad es un tema que hemos discutido bastantes veces e incluso dedicado uno de nuestros conceptos de economía.
+
+En realdad nos interesa la productividad porque cuanto más seamos capaces de producir mejor viviremos, o al menos más deberíamos de ganar por nuestro trabajo. Además la productividad se puede mejorar individualmente, por ejemplo saber inglés aumenta las personas a las que se puede atender en hostelería u otros servicios.
+
+La formación no es el único modo de aumentar la productividad, normalmente el principal modo suele ser aumentar el capital disponible para producir, que puede ser público o privado. Por ejemplo un camionero podrá producir más con un camión moderno que es capaz de cargar más toneladas y consumir menos que con uno antiguo. Pero su productividad también aumentará si las carreteras son mejores, y pasa de ir por una lenta carretera con curvas a una moderna autopista con viaductos y túneles que aumenten la velocidad a la que pueda circular.
+
+El problema es que a medida que aumentamos el capital, llega un momento en el que poco se puede hacer. Si el camionero tiene un camión moderno de bajo consumo y gran tonelaje, que desplaza mercancía por autovías con rutas optimizadas, es posible que ya sólo nos quede comprarle un GPS para evitar las ocasionales veces en las que se pierde. Es decir, el incremento de la productividad adicional que tenemos con capital, acaba siendo decreciente.
+
+Un buen método para calcular la productividad es la productividad total de los factores (PTF), que mide como cambia la productividad una vez quitamos los incrementos de capital. Porque en general si al trabajador le incrementamos el capital, producirá más. Pero no es sólo eso, sino también la capacidad que tenga el trabajador de producir más. La tecnología es cada vez más barata y accesible, de modo que deja de ser tan importante. En cierto modo la economía se parece cada vez más al futbol, los dos equipos se enfrentan en unas condiciones similares, y aunque pueden mejorar utilizando equipamiento más caro (botas más resistentes y ligeras, camisetas que transpiren mejor, etc), las condiciones de los trabajadores son similares, y cuenta la productividad de los trabajadores.
+
+¿Evoluciona positivamente la productividad de los españoles?
+
+Figuretfp
+La verdad, es que si miramos la evolución de la productividad total de los factores, en España en los últimos años no ha sido buena. Si miramos la serie histórica, vemos que en general, esta creció hasta aproximadamente 1990, pero se ha estancado desde entonces. Es decir, llevamos 25 años que nuestra productividad no crece. Es cierto que hasta entonces creció más que en países industriales, pero la verdad es que lleva 25 años estancada.
+
+Esta imagen la he tomado prestada del blog Nada Es Gratis y fue elaborada por el profesor Jesús Fernandez-Villaverde usando datos de la Penn World Table. En ella se ve, como la PTF creció mucho entre 1950 y 1990, es decir, pasamos por la reconstrucción del país tras la guerra civil, el plan de estabilización del 59, cuyas medidas llegaron hasta la transición. A partir de aquí crece porque comienzan las reformas de liberalización del mercado para entrar en la UE. Pero una vez hemos entrado en la UE, nos quedamos estancados.
+
+Tfp Conferenceboard
+Esta segunda gráfica muestra cómo ha evolucionado la PTF en los últimos 25 años (de 1990 a 2014), utilizando los datos de Conference Board que utilió el usuario Epic como argumento de que la productividad española es alta. Aquí se ve que aunque la PTF crece y decrece para todos los países, España e Italia suelen tener por debajo de cero en crecimiento, Francia se estanca y la productividad aumenta en Estados Unidos y Reino Unido.
+
+Así que por eso cuando afirmo que la productividad de los españoles no es buena, no sólo sucede que no es buena, sino que no evoluciona adecuadamente. Mejorar nuestra productividad y nuestra competitividad debería de ser uno de los objetivos prioritarios del próximo gobierno. Sólo así se podrá crear empleo y llegar a ofrecer unas condiciones de vida razonables en el futuro, todo lo demás no dejan de ser parches.
+

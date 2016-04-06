@@ -1,0 +1,41 @@
+Antes de las elecciones el Gobierno de España otorgó unas licencias de televisión, tema bastante polémico debido a que los canales de televisión pueden ser una herramienta de propaganda política que favorezca al partido que está en el Gobierno.
+
+La televisión radiodifundida es un recurso limitado. No podemos tener infinitos canales de TV (como sí podríamos, por ejemplo, en Internet) debido a que el espectro radioeléctrico es finito. Por tanto el quién usa este espectro debe ser determinado de una forma eficiente por parte del Estado.
+
+¿Fue eficiente la asignación de los nuevos canales de TV?
+
+La gran pregunta es si en la concesión de los canales fue eficiente. Los requisitos del concurso eran que hubiera pluralidad informativa, objetivo que a muchos podría parecer loable. El problema es que evaluar la pluralidad no es tan fácil como comparar números y al final es una vía para asignar a dedo los recursos públicos.
+
+La concesión de los nuevos canales fue a parar a Atresmedia (que ya tiene unos cuantos canales), Mediaset (que también tiene canales), 13TV, Real Madrid TV, Grupo Secuoya y KISS TV. Las compañías Vocento y Prisa, que también licitaron, quedaron fuera y pusieron el grito en el cielo por esta asignación.
+
+Ahora se ha descubierto que KISS TV no va a lanzar el canal sino alquilar la frecuencia a Discovery. Es decir, los editores de KISS TV se convierten en meros comisionistas y esto significa que la asignación de recursos no fue todo lo eficiente posible.
+
+Pero, ¿es posible asignar de forma eficiente los recursos escasos por parte del Estado? Sí, es posible. Pero hay que desterrar los criterios que no sean económicos, de lo contrario sucede lo que ha pasado, que lo subjetivo se usan como puerta de atrás para asignar a amigos.
+
+El caso de la subasta de telefonía móvil de 3G
+
+El caso más paradigmático de una asignación de recursos eficiente es la subasta que hubo con el motivo de la tercera generación de telefonía móvil en todo el mundo. El mayor exponente de esta asignación fue el Reino Unido, que llevó a cabo la que fue entonces la mayor subasta de la historia: logró recaudar 34.000 millones de euros, el 2,5% del PIB. Alemania, poco tiempo después, también logró sacar una buena tajada, 50.000 millones de euros.
+
+Es cierto que estas subastas de frecuencias sumieron a las empresas de telecomunicaciones en una crisis profunda, pues los precios pagados fueron excesivos. Pero está claro que la asignación de recursos fue eficiente, las subastas se diseñaron para maximizar el precio y por fin un recurso público se asignó de forma eficiente a empresas privadas.
+
+Un detalle interesante: España fue el primer país del mundo en asignar las frecuencias de tercera generación de telefonía móvil. Curiosamente fue un concurso clásico donde apenas había dinero involucrado y los ganadores fueron los tres operadores de la época (Telefónica, Amena y Airtel) más un nuevo operador (Xfera) y se dejó fuera a France Telecom a pesar de las ganas que tenía de entrar en España (acabó entrando comprando Amena, pero seguro que habría pagado mucho por una licencia nueva). La asignación de espectro para 4G llevada a cabo hace pocos años sí que fue por subasta, por cierto.
+
+Por tanto, es posible asignar eficientemente los recursos públicos, basta con poner una serie de condiciones y realizar una subasta bien diseñada. Y esto aplica tanto al espectro radioeléctrico (televisión, telefonía móvil) y a otros recursos públicos.
+
+Otros casos no tan tecnológicos
+
+¿Qué otros recursos son escasos y su asignación debe ser económica? Por ejemplo las concesiones de explotación de infraestructuras ya creadas. Estoy hablando de autopistas, terrazas en lugares públicos y un largo etcétera.
+
+Es bastante habitual en España que cuando acaba una concesión de x años el Gobierno acabe renovando dicha concesión por más tiempo. Esto ha pasado en autopistas después de pasar su periodo de explotación de 50 años. Lo que debería hacer el Estado es sacarla a concurso, pero no a sobre cerrado sino en una subasta. Que cada cual haga sus cálculos de lo que cuesta el mantenimiento y los cálculos de tráfico y que pague lo que crea conveniente. Si los cálculos están mal y quiebran, se vuelve a sacar otro concurso.
+
+Recientemente se está hablando de la concesión del Teleférico de Madrid, construido en los años 60 y por el cual el Ayuntamiento apenas recibe 4.000 euros al año, a pesar de usar espacios públicos. ¿No sería más lógico sacarlo a concurso? Y dentro del concurso, lo mejor es una subasta.
+
+E incluso en el ámbito privado hay asignaciones de recurso poco eficientes que se podrían subsanar con subastas. Por ejemplo últimamente hay una polémica por la reventa de entradas a conciertos por Internet. El problema es que la asignación es ineficiente, y hay gente que no logra la entrada y está dispuesta a pagar más. Si se hiciera una subasta la reventa quedaría reducida al mínimo. Es cierto que al final habría gente descontenta (precios de entradas muy altos) pero estamos ante un recurso escaso y en cualquier caso habrá gente descontenta.
+
+¿Subasta para todo? No, solo para asignación de recursos
+
+Puede parecer que estoy defendiendo que en cualquier concurso público hay que hacer subastas en lugar de concursos con peso de los méritos, pero no es así. Estoy defendiendo la subasta cuando hay que realizar una asignación eficiente de recursos escasos.
+
+Hay otros concursos en los que sí hay que premiar la calidad. Por ejemplo, se ha visto que realizar concursos con el único criterio del precio en la limpieza de Madrid ha bajado mucho la calidad. O que dejar actuar a empresas sin experiencia en ciertos ámbitos (BiciMad) es una mala idea.
+
+Pero cuando se trata de asignar un espacio, el espectro radioeléctrico o la prestación de un servicio con una infraestructura ya montada deberíamos replantearnos nuestra forma de asignar, porque al final hay hueco para no ser eficientes y que alguien (normalmente un amigo de un político) se lleve ese extra de dinero.

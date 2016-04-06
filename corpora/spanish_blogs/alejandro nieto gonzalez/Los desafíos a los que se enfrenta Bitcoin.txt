@@ -1,0 +1,36 @@
+Las criptomonedas, y concretamente Bitcoin, han venido para quedarse. O eso es lo que muchos pensábamos hace tres años. La moneda surgió como una bocanada de aire fresco ante las monedas inflaccionarias del mundo real, con una tecnología muy innovadora, y parecía que se iba a comer el mundo.
+
+Es cierto que Bitcoin ha sufrido muchos baches en el camino. La caída de Mt Gox y Silkroad hicieron que se desplomara su cotización pero aún así logró recuperarse y eso dio esperanzas a muchos: no estábamos ante una moda pasajera.
+
+Pero los desafíos a los que se enfrenta Bitcoin son cada vez mayores. El foco de atención ha pasado de Bitcoin, que ni los más impresionados por esta nueva utopía se atreven a defender, por la tecnología que está detrás, el blockchain, siendo la banca la más interesada en usarla es sus transacciones. Los desafíos a los que se enfrenta hoy por hoy Bitcoin son bastante serios.
+
+Desafíos regulatorios
+
+Aunque hubo cierta esperanza de que Bitcoin quedara fuera de las manos de nuestros gobernantes cuando el Tribunal de Justicia de la Unión Europea decidió que el Bitcoin era como una moneda más, hoy en día no está tan claro.
+
+Bitcoin permite cierto anonimato (aunque las transacciones son públicas) y eso pone en riesgo los controles de capitales. Con la excusa (sea cierto o no) del terrorismo la Unión Europea quiere controlar las criptomonedas. Eso de que haya transacciones financieras sin fiscalizar es un problema y si el uso del Bitcoin sigue subiendo seguro que van a intervenir.
+
+El problema es que técnicamente no hay forma de controlarla, así que la única regulación posible es prohibirla y combatir su uso. No permitir a los comercios aceptarla. Intentar identificar a las personas que la usan. Y un largo etcétera que impediría que en la práctica sea una moneda que pueda usar la gente normal.
+
+Desafíos económicos
+
+Bitcoin está diseñada para que no haya inflación. En algún momento dejará de haber nuevas monedas y de hecho habrá deflación pues algunas se irán perdiendo en discos duros olvidados. Por tanto una economía que use el Bitcoin como moneda tendría que acostumbrarse a que los precios bajen, no suban.
+
+9481669689_8e8a3b9598_o.png
+Esto se ha demostrado que es un problema. La flexibilidad de precios al alza es mucha, pero a la baja no tanto. Normalmente el mercado laboral baja los salarios con despidos y nuevas contrataciones, no con reducciones de salario que suelen traer muchos problemas. Por eso las crisis económicas generan mucho paro, la flexibilidad de precios a la baja es muy complicada.
+
+Además, en un entorno de deflación hay otros dos efectos muy negativos: el retraso del gasto e inversiones (debido a que todo será más barato mañana, sale más a cuenta acumular y esperar) y las deudas aumentan con el tiempo (ya que los salarios bajan). En una economía basada en Bitcoin nos tendríamos que adaptar a esto o vivir en una crisis económica constante.
+
+Desafíos técnicos
+
+Otro problema al que se está enfrentando Bitcoin en estos momentos es técnico. A pesar de las dudas que genera el éxito de Bitcoin es superior al que pronosticaron sus creadores y el número de transacciones es excesivamente alto para el diseño que tiene. Esto hace que las transacciones tarden mucho en confirmarse y que haya una cierta inseguridad.
+
+De hecho hay una batalla entre los que quieren reformar partes del algoritmo y los que no, generando inseguridades y haciendo, en algunos casos, inusable la moneda. Los detalles exceden el objeto de esta entrada pero es, desde luego, un problema muy serio.
+
+Desafíos de confianza
+
+Para que una moneda se imponga en un uso diario tiene que haber confianza. Esta confianza es muy complicada cuando la volatilidad es muy alta y Bitcoin ha tenido momentos de muchas volatilidad, tanto subidas como bajadas. ¿Cómo fijas un precio en Bitcoins si su relación con las monedas en las que se establecen los precios de las materias primas es tan cambiante?
+
+A esto se le suman los desafíos técnicos y de regulación, que no ayudan a que su uso se extienda más allá de los verdaderos fanáticos de esta nueva tecnología. Realmente todo está bastante relacionado.
+
+Sin embargo todos estos problemas tienen su solución. El diseño económico y técnico de Bitcoin se pueden cambiar (de hecho hay otras criptomonedas que no tienen estos problemas). Esto podría dar más confianza y afianzar su uso. Con un uso más general es complicado que los reguladores decidan atacar directamente a las monedas, es cierto que hay más incentivos para ello pero también más riesgos, no olvidemos que la regulación la fijan los políticos que son elegidos por sus ciudadanos y a nadie le gusta que las costumbres normales de la sociedad sean criminalizadas. Veremos el futuro y cómo afronta Bitcoin los desafíos que tiene por delante.
