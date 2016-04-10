@@ -1,3 +1,7 @@
+# PyCharm
+.idea/
+
+# OS X
 .DS_Store
 .AppleDouble
 .LSOverride
