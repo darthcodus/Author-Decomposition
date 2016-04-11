@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 import pickle
 
@@ -7,17 +9,37 @@ class TextMerger(object):
         self.texts = []
 
     def addText(self, author, text):
-        text = {}
-        self.texts.append(text)
-        text['author'] = author
-        text['text'] = text
+        newText = {}
+        self.texts.append(newText)
+        newText['author'] = author
+        newText['text'] = text
 
     def textsByAuthor(self, author):
-        return filter(lambda x: x['author'].lower() is author.lower(), self.texts)
+        return list(filter(lambda x: x['author'].lower() == author.lower(), self.texts))
 
     def generateText(self, lower, upper):
         textFile = ""
         metaFile = ""
+        # lower and upper ignored for now, just randomly concatenates texts
+        if lower is not 0 or upper is not 0:
+            raise Exception('Not implemented sentence wise chunking')
+        import random
+        done = [False] * len(self.texts)
+        curtext = -1
+        while any(x is False for x in done):
+            curtext = random.randint(0, len(self.texts) - 1)
+            if done[curtext]:
+                continue
+            newText = self.texts[curtext]['text']
+            newAuthor = self.texts[curtext]['author']
+            print(textFile)
+            print(newText)
+            metaFile += '%d,,, %d,,, %s\n' % (len(textFile), len(textFile) + len(newText) - 1, newAuthor)
+            textFile += newText
+            done[curtext] = True
+        return textFile, metaFile
+
+        """
         for text in self.texts:
             text['ptr'] = 0
         temp = filter(lambda x: x['ptr'] < len(x['text']), self.texts)
@@ -31,10 +53,10 @@ class TextMerger(object):
                     chunksize = random.randint(lower, upper)
                 lines = 0
                 while(lines < chunksize and text['ptr'] < len(text['text']):
-
                 if x['ptr'] >= <?>:
                     temp = filter(lambda x: x['ptr'] < len(x['text']), self.texts)
         return None, None #TODO
+        """
 
 def main():
     import argparse
@@ -54,18 +76,20 @@ def main():
             continue
         print("\t%s" % subdir)
         author = os.path.split(subdir)[-1]
-        print('Author: ', author)
+        print('\n\nAuthor: ', author)
         for f in files:
-            print('Text: ', file)
+            print('Text: ', f)
             with open(os.path.join(subdir, f), encoding='utf-8') as fin:
-                contents = fin.readlines()
+                contents = ''.join(fin.readlines())
                 tm.addText(author, contents)
-            print("\t\tRead %d texts for author." % len(tm.textsByAuthor(author)))
+                # print(author, '\n', contents)
+        print(tm.texts)
+        print("\t\tRead %d texts for author." % len(tm.textsByAuthor(author)))
 
     if len(args.chunk) == 1:
-        textFile, metaFile = tm.generateText(args.chunk[0], args.chunk[0])
+        textFile, metaFile = tm.generateText(int(args.chunk[0]), int(args.chunk[0]))
     else:
-        textFile, metaFile = tm.generateText(args.chunk[0], args.chunk[1])
+        textFile, metaFile = tm.generateText(int(args.chunk[0]), int(args.chunk[1]))
 
     with open(args.outputtextfile, 'wb') as f:
         pickle.dump(textFile, f)
