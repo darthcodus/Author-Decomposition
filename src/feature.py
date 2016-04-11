@@ -25,14 +25,17 @@ class WordFrequency:
     def _tokenize_es(texts):
         assert isinstance(texts, str)
         nlp = StanfordCoreNLP('http://25.30.82.122:8011')
-        # TODO: need to fix encoding issue
-        response = nlp.annotate(texts, properties={
-            "annotators": "tokenize,ssplit,openie",
+        output = nlp.annotate(texts, properties={
+            "annotators": "tokenize,ssplit",
             "coref.md.type": "dep",
             "coref.mode": "statistical"
         })
-        print(response['sentences'][0]['openie'])
+        print(output['sentences'][0]['tokens'][1]['word'])
+
         tokens = []
+        for sentence in output['sentences']:
+            for token in sentence['tokens']:
+                tokens.append(token['word'])
         return tokens
 
     @staticmethod
@@ -60,10 +63,7 @@ class NCharacterGram:
 
 
 def main():
-    wf = WordFrequency(lang='es')
-    input_file = '../corpora/spanish_blogs/alejandro nieto gonzalez/Ciertos comportamientos ecológicos puede que no lo sean.txt'
-    output_file = 'test_wq_model.txt'
-    wf.build_model(input_file, output_file)
+    pass
 
 
 if __name__ == '__main__':
