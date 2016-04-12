@@ -31,20 +31,21 @@ class StanfordCoreNLP:
         output = json.loads(output, encoding='utf-8', strict=True)
         return output
 
-    def tokenize_es(self, texts):
+    def parse(self, texts):
         assert isinstance(texts, str)
         output = self.annotate(texts, properties={
-            "annotators": "tokenize,ssplit",
+            "annotators": "tokenize,ssplit,pos",
             "coref.md.type": "dep",
             "coref.mode": "statistical"
         })
 
-        tokens = []
+        words = []
+        postags = []
+
         for sentence in output['sentences']:
             for token in sentence['tokens']:
                 word = token['word']
-                if not isinstance(word, str):
-                    print(word)
-                    assert isinstance(word, str)
-                tokens.append(word)
-        return tokens
+                pos = token['pos']
+                words.append(word)
+                postags.append(pos)
+        return words, postags

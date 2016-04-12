@@ -1,113 +1,127 @@
 #!/usr/bin/env python3
 import argparse
 import glob
+import logging
 
 from corenlp import StanfordCoreNLP
 
 
-def count_tokens(tokens):
-    assert isinstance(tokens, list)
-    model = {}
-    for token in tokens:
-        assert isinstance(token, str)
-        num = model.get(token, 0)
-        model[token] = num + 1
-    return model
+class Feature:
+    def __init__(self, nlp, num_gram=4):
+        assert isinstance(nlp, StanfordCoreNLP)
+        assert isinstance(num_gram, int)
+        self.nlp = nlp
+        self.num_gram = num_gram
 
+        formatter = logging.Formatter('%(asctime)s %(message)s')
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(handler)
 
-def save_model(model, output_file):
-    assert isinstance(model, dict)
-    assert isinstance(output_file, str)
-    with open(output_file, 'w', encoding='utf-8') as file:
-        for word, num in model.items():
-            file.write(str.format('{} {}\n', word, num))
+    def build_model(self, input_dir,
+                    word_path, char_ngram_path, postag_path, bipostag_path):
+        assert isinstance(input_dir, str)
+        assert isinstance(word_path, str)
+        assert isinstance(char_ngram_path, str)
+        assert isinstance(postag_path, str)
+        assert isinstance(bipostag_path, str)
 
-
-class WordFrequency:
-    def __init__(self, lang='es'):
-        assert isinstance(lang, str)
-        self.lang = lang
-
-    def build_model(self, input_path, output_file):
-        assert isinstance(input_path, str)
-        assert isinstance(output_file, str)
-        paths = str.format('{}/*/*', input_path)
+        input_paths = str.format('{}/*/*', input_dir)
         chunks = []
+        sentences = []
         texts = ''
 
-        for file_path in glob.glob(paths):
+        self.logger.info('Loading corpora...')
+
+        for file_path in glob.glob(input_paths):
             with open(file_path, 'r', encoding='utf-8') as file:
                 for line in file:
-                    if len(texts) + len(line) >= 80000:
+                    sentences.append(line)
+                    if len(texts) + len(line) >= 90000:
                         chunks.append(texts)
                         texts = ''
                     texts += line
         chunks.append(texts)
 
-        tokens = []
-        if self.lang == 'es':
-            for chunk in chunks:
-                nlp = StanfordCoreNLP('http://25.30.82.122:8011')
-                tokens.extend(nlp.tokenize_es(chunk))
-        else:
-            tokens = texts.split()
-        model = count_tokens(tokens)
-        save_model(model, output_file)
+        words = []
+        chars = []
+        postags = []
+        bipostag = []
 
+        self.logger.info('Parsing...')
 
-class CharacterNgram:
-    def __init__(self, n=4, lang='es'):
-        assert isinstance(n, int)
-        assert isinstance(lang, str)
-        if n <= 0:
-            raise AssertionError('The parameter should be greater than 0.')
-        self.n = n
-        self.lang = lang
+        for chunk in chunks:
+            w, p = self.nlp.parse(chunk)
+            words.extend(w)
+            postags.extend(p)
 
-    def build_model(self, input_path, output_file):
-        """
-        # Not tokenizing is better to capture stylistic features.
-        """
-        assert isinstance(input_path, str)
-        assert isinstance(output_file, str)
-        paths = str.format('{}/*/*', input_path)
-        texts = ''
+        for sentence in sentences:
+            g = self._make_ngram(sentence, self.num_gram)
+            chars.extend(g)
 
-        for file_path in glob.glob(paths):
-            with open(file_path, 'r', encoding='utf-8') as file:
-                for line in file:
-                    texts += line.replace('\n', ' ')
+        for pair in self._make_ngram(postags, 2):
+            bipostag.append(str.format('{} {}', pair[0], pair[1]))
 
-        ngrams = []
-        for ngram in self._make_ngram(texts):
-            ngrams.append(ngram)
+        self.logger.info('Counting...')
 
-        model = count_tokens(ngrams)
-        save_model(model, output_file)
+        word_model = self.count_tokens(words)
+        char_model = self.count_tokens(chars)
+        postag_model = self.count_tokens(postags)
+        bigram_model = self.count_tokens(bipostag)
 
-    def _make_ngram(self, texts):
-        assert isinstance(texts, str)
+        self.save_model(word_model, word_path)
+        self.save_model(char_model, char_ngram_path)
+        self.save_model(postag_model, postag_path)
+        self.save_model(bigram_model, bipostag_path)
+
+        self.logger.info('Saved to files.')
+
+    @staticmethod
+    def _make_ngram(iterable, size):
         grams = []
-        for i in range(len(texts) - self.n):
-            grams.append(texts[i:i + self.n])
+        for i in range(len(iterable) - size):
+            grams.append(iterable[i:i + size])
         return grams
+
+    @staticmethod
+    def count_tokens(tokens):
+        assert isinstance(tokens, list)
+        model = {}
+        for token in tokens:
+            assert isinstance(token, str)
+            num = model.get(token, 0)
+            model[token] = num + 1
+        return model
+
+    @staticmethod
+    def save_model(model, output_file):
+        assert isinstance(model, dict)
+        assert isinstance(output_file, str)
+        with open(output_file, 'w', encoding='utf-8') as file:
+            for word, num in model.items():
+                file.write(str.format('{} {}\n', word, num))
 
 
 def main():
     parser = argparse.ArgumentParser(description='This generates feature metadata.')
     parser.add_argument('-t', metavar='<../corpora>', dest='input_path', help='Paths to folder containing texts', required=True)
-    parser.add_argument('-wf', metavar='<output_wf.txt>', dest='wf_file', help='Word frequency output file', required=True)
-    parser.add_argument('-cn', metavar='<output_cn.txt>', dest='cn_file', help='Character 4-gram output file', required=True)
+    parser.add_argument('-word', metavar='<output_word.txt>', dest='word_file', help='Word frequency output file', required=True)
+    parser.add_argument('-char', metavar='<output_char.txt>', dest='char_file', help='Character 4-gram output file', required=True)
+    parser.add_argument('-pos', metavar='<output_pos.txt>', dest='pos_file', help='Character 4-gram output file', required=True)
+    parser.add_argument('-bipos', metavar='<output_bipos.txt>', dest='bipos_file', help='Character 4-gram output file', required=True)
     args = parser.parse_args()
 
     input_path = args.input_path
-    wf_file = args.wf_file
-    cn_file = args.cn_file
+    word_file = args.word_file
+    char_file = args.char_file
+    pos_file = args.pos_file
+    bipos_file = args.bipos_file
 
-    wf = WordFrequency(lang='es')
-    cn = CharacterNgram(4, lang='es')
-    wf.build_model(input_path, wf_file)
-    cn.build_model(input_path, cn_file)
+    nlp = StanfordCoreNLP('http://25.30.82.122:8011')
+    wf = Feature(nlp)
+    wf.build_model(input_path, word_file, char_file, pos_file, bipos_file)
 
 
 if __name__ == '__main__':

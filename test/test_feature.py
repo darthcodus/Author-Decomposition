@@ -1,31 +1,29 @@
 import os
 import unittest
 
-from feature import WordFrequency, CharacterNgram
+from corenlp import StanfordCoreNLP
+from feature import Feature
 
 
-class WordFrequencyTest(unittest.TestCase):
+class FeatureTest(unittest.TestCase):
     def setUp(self):
-        self.wf = WordFrequency(lang='es')
+        nlp = StanfordCoreNLP('http://25.30.82.122:8011')
+        self.wf = Feature(nlp)
 
     def test_build_model(self):
         wf = self.wf
         input_file = '../corpora/spanish_blogs'
-        output_file = 'test_wf_model.txt'
-        wf.build_model(input_file, output_file)
-        self.assertTrue(os.path.isfile(output_file))
-
-
-class CharacterNgramTest(unittest.TestCase):
-    def setUp(self):
-        self.nc = CharacterNgram(4, lang='es')
-
-    def test_build_model(self):
-        nc = self.nc
-        input_path = '../corpora/spanish_blogs'
-        output_file = 'test_cn_model.txt'
-        nc.build_model(input_path, output_file)
-        self.assertTrue(os.path.isfile(output_file))
+        wf.build_model(
+            input_file,
+            'test_word_model.txt',
+            'test_char_model.txt',
+            'test_pos_model.txt',
+            'test_bipos_model.txt'
+        )
+        self.assertTrue(os.path.isfile('test_word_model.txt'))
+        self.assertTrue(os.path.isfile('test_char_model.txt'))
+        self.assertTrue(os.path.isfile('test_pos_model.txt'))
+        self.assertTrue(os.path.isfile('test_bipos_model.txt'))
 
 
 if __name__ == '__main__':
