@@ -7,7 +7,7 @@ First use maven to package executable jar:
 mvn package
 ```
 
-The previous will create: sentenceSplitUtil-jar-with-dependencies.jar
+The previous will create: target/sentenceSplitUtil-jar-with-dependencies.jar
 
 Run program with:
 
