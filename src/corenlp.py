@@ -4,12 +4,11 @@ import requests
 
 
 class StanfordCoreNLP:
-    def __init__(self, server_url):
-        if server_url[-1] == '/':
-            server_url = server_url[:-1]
+    def __init__(self, server_url='http://192.241.215.92:8011'):
+        assert isinstance(server_url, str)
         self.server_url = server_url
 
-    def annotate(self, text, properties):
+    def _annotate(self, text, properties):
         assert isinstance(text, str)
         assert isinstance(properties, dict)
 
@@ -17,23 +16,27 @@ class StanfordCoreNLP:
         try:
             requests.get(self.server_url)
         except requests.exceptions.ConnectionError:
-            raise Exception(
-                'Check whether you have started the CoreNLP server e.g.\n'
-                '$ cd stanford-corenlp \n'
-                '$ java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer'
-            )
+            raise Exception('Check whether you have started the CoreNLP server.')
 
         # texts should be encoded to deal with unicode.
         # maximum length of data is 100k.
         data = text.encode()
+        if len(data) > 100000:
+            raise Exception('Data size limit (100,000 bytes) exceeded.')
         r = requests.post(self.server_url, params={'properties': str(properties)}, data=data)
         output = r.text
         output = json.loads(output, encoding='utf-8', strict=True)
         return output
 
-    def parse(self, texts):
-        assert isinstance(texts, str)
-        output = self.annotate(texts, properties={
+    def parse(self, text):
+        """
+        Stanford CoreNLP parses texts and returns tokens
+        and their corresponding POS tags.
+        :param text: input texts that are less than 100,000 bytes.
+        :return: a tuple (list of words, list of POS tags)
+        """
+        assert isinstance(text, str)
+        output = self._annotate(text, properties={
             "annotators": "tokenize,ssplit,pos",
             "coref.md.type": "dep",
             "coref.mode": "statistical"
@@ -49,3 +52,25 @@ class StanfordCoreNLP:
                 words.append(word)
                 postags.append(pos)
         return words, postags
+
+    def split_sentences(self, text):
+        """
+        Stanford CoreNLP parses texts and returns sentences as a list
+        :param text: input texts that are less than 100,000 bytes.
+        :return: a list of sentences
+        """
+        assert isinstance(text, str)
+        text = text.replace('\n', '')
+        output = self._annotate(text, properties={
+            "annotators": "tokenize,ssplit",
+            "coref.md.type": "dep",
+            "coref.mode": "statistical"
+        })
+
+        sentences = []
+        for sentence in output['sentences']:
+            num_token = len(sentence['tokens'])
+            start_index = sentence['tokens'][0]['characterOffsetBegin']
+            end_index = sentence['tokens'][num_token - 1]['characterOffsetEnd']
+            sentences.append(text[start_index:end_index])
+        return sentences

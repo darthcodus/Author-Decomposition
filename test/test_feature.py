@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import unittest
 
@@ -7,7 +8,7 @@ from feature import Feature
 
 class FeatureTest(unittest.TestCase):
     def setUp(self):
-        nlp = StanfordCoreNLP('http://25.30.82.122:8011')
+        nlp = StanfordCoreNLP('http://192.241.215.92:8011')
         self.wf = Feature(nlp)
 
     def test_build_model(self):

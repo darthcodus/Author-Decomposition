@@ -1,12 +1,43 @@
+#!/usr/bin/env python3
 class Chunker(object):
-    # chunk size is in number of sentences
-    def __init__(self, debug = False):
-        self.debug = False
+    def __init__(self):
+        self.sentences = []
+        self.authors = []
 
-    # return a list of sentences
-    def tokenizeIntoSentences(self, text):
-        raise Exception("Not implemented")
+    def clear_all(self):
+        """
+        Deletes all the added sentences.
+        """
+        self.sentences.clear()
+        self.authors.clear()
 
-    # separate text into chunks of 'chunkSize' sentences, return a list containing lists of sentences belonging to that chunk
-    def chunk(self, text, chunkSize):
-        raise Exception("Not implemented")
+    def add_sentence(self, author, sentence):
+        """
+        Add authorship and a corresponding sentence to the chunker.
+        :param sentence: a single-sentence text.
+        :param author: author name
+        """
+        assert isinstance(author, str)
+        assert isinstance(sentence, str)
+        self.sentences.append(sentence)
+        self.authors.append(author)
+
+    def fixed_length_chunk(self, chunk_size):
+        """
+        Separates text into chunks of 'chunk_size' sentences.
+        :param chunk_size: the number of sentences in each chunk
+        :return: a list of dictionaries containing texts and a author list
+        {'text': chunk, 'author': ['a', 'b', 'c']}.
+        """
+        assert isinstance(chunk_size, int)
+        if chunk_size <= 0:
+            raise Exception('Invalid chunk size.')
+
+        chunks = []
+
+        for i in range(0, len(self.sentences), chunk_size):
+            chunks.append({
+                'author': self.authors[i:i + chunk_size],
+                'text': ' '.join(self.sentences[i:i + chunk_size])
+            })
+        return chunks

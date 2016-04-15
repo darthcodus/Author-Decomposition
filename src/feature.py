@@ -119,7 +119,7 @@ def main():
     pos_file = args.pos_file
     bipos_file = args.bipos_file
 
-    nlp = StanfordCoreNLP('http://25.30.82.122:8011')
+    nlp = StanfordCoreNLP()
     wf = Feature(nlp)
     wf.build_model(input_path, word_file, char_file, pos_file, bipos_file)
 
