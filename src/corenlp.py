@@ -21,7 +21,7 @@ class StanfordCoreNLP:
         # texts should be encoded to deal with unicode.
         # maximum length of data is 100k.
         data = text.encode()
-        if len(data) > 100000:
+        if len(data) > 90000:
             raise Exception('Data size limit (100,000 bytes) exceeded.')
         r = requests.post(self.server_url, params={'properties': str(properties)}, data=data)
         output = r.text
