@@ -71,7 +71,7 @@ def main():
     parser.add_argument('-c', '--chunk', help='number of sentences per chunk, as -c <size> or -c <lower> <upper> for random values between a range, or 0 to simply randomly join the texts', required=True, nargs = '*')
     parser.add_argument('-oth', '--hrtxt', help='output human-readable text file', required=False)
     parser.add_argument('-omh', '--hrmeta', help='output human-readable metadata file', required=False)
-    parser.add_argument('-opick', '--pickletext', help='output pickled text file', required=True)
+    parser.add_argument('-opick', '--pickletext', help='output file for pickled Text object', required=True)
     args = parser.parse_args()
 
     tm = TextMerger()
