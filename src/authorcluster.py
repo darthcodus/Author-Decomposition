@@ -17,15 +17,20 @@ def AuthorCluster(object):
         vec = [x in chunk for x in self.MostCommonWords]
         return vec
 
-    # Input: text tokenized into sentences [ 0'sen1', 1'sen2', 3'sen3' ]
-    # RET: [ [0], [1, 3] ] - > len = numClusters
+    # TODO: reduce calls to corenlp API
     def cluster(self, text, chunkSize, numClusters):
+        """
+        Splits text into chunks of size 'chunkSize' and clusters those chunks into
+        'numClusters' number of clusters.
+        :param text: input text.
+        :return: a tuple(list of sentences after tokenizing text, a list of lists of sentences belonging to each cluster)
+        """
         #if self.Language not in [Language.Arabic, Language.English, Language.Spanish]:
         #    raise Exception("Not implemented for language", self.Language)
         cnlp = StanfordCoreNLP()
         fdist = nltk.FreqDist(cnlp.parse(text)[0])
         # TODO: the english tokenizer at least also includes punctuation, filter?
-        for wordfreqpair in fdist.most_common(500): # TODO: too high for the size of our texts?s
+        for wordfreqpair in fdist.most_common(500): # TODO: too high for the size of our texts?
             word = wordfreqpair[0]
             # freq = wordfreqpair[1]
             self.MostCommonWords.append(word)
@@ -43,4 +48,4 @@ def AuthorCluster(object):
             for sentence in cnlp.split_sentences(chunks[i]):
                 ret[label].append(sentencenum)
                 sentencenum += 1
-        return ret
+        return (cnlp.split_sentences(text), ret)
