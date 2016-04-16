@@ -1,7 +1,7 @@
 from chunk import Chunker
 from constants import Language
 import nltk
-from tokenizer import Tokenizer
+from corenlp import StanfordCoreNLP
 
 from sklearn import cluster
 from sklearn import metrics
@@ -10,7 +10,7 @@ def AuthorCluster(object):
     def __init__(self, verbose = False, lang):
         self.Chunker = Chunker(verbose)
         self.Verbose = verbose
-        self.Language = lang
+        self.Language = lang # TODO: needed? ignored for now. Assuming corenlp does the right thing for the langs we need.
         self.MostCommonWords = []
 
     def generateFeatureVector(self, chunk):
@@ -20,8 +20,10 @@ def AuthorCluster(object):
     # Input: text tokenized into sentences [ 0'sen1', 1'sen2', 3'sen3' ]
     # RET: [ [0], [1, 3] ] - > len = numClusters
     def cluster(self, text, chunkSize, numClusters):
-        tokenizer = Tokenizer(self.Language)
-        fdist = nltk.FreqDist(tokenizer.tokenizeIntoWords(text))
+        #if self.Language not in [Language.Arabic, Language.English, Language.Spanish]:
+        #    raise Exception("Not implemented for language", self.Language)
+        cnlp = StanfordCoreNLP()
+        fdist = nltk.FreqDist(cnlp.parse(text)[0])
         # TODO: the english tokenizer at least also includes punctuation, filter?
         for wordfreqpair in fdist.most_common(500): # TODO: too high for the size of our texts?s
             word = wordfreqpair[0]
@@ -38,7 +40,7 @@ def AuthorCluster(object):
         ret = [[]] * numClusters
         sentencenum = 0
         for i, label in enumerate(labels):
-            for sentence in tokenizer.tokenizeIntoSentences(chunks[i]):
+            for sentence in cnlp.split_sentences(chunks[i]):
                 ret[label].append(sentencenum)
                 sentencenum += 1
         return ret
