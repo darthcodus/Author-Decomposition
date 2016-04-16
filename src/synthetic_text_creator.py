@@ -84,6 +84,10 @@ def main():
         print('\n\nAuthor: ', author)
         for f in files:
             print('Text: ', f)
+            if f.lower() == '.DS_Store'.lower():
+                print('Ignoring %s' % f)
+                continue
+
             with open(os.path.join(subdir, f), encoding='utf-8') as fin:
                 contents = ''.join(fin.readlines())
                 tm.addText(author, contents)
@@ -96,10 +100,13 @@ def main():
     else:
         textFile, metaFile, text = tm.generateText(int(args.chunk[0]), int(args.chunk[1]))
 
-    with open(args.hrtxt, 'wt') as f:
-        f.write(textFile)
-    with open(args.hrmeta, 'wt') as f:
-        f.write(metaFile)
+    if args.hrtxt is not None:
+        with open(args.hrtxt, 'wt') as f:
+            f.write(textFile)
+
+    if args.hrmeta is not None:
+        with open(args.hrmeta, 'wt') as f:
+            f.write(metaFile)
 
     text.writeToFile(args.pickletext)
 
