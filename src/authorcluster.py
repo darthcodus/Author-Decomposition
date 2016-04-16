@@ -22,13 +22,13 @@ def AuthorCluster(object):
         """
         Splits text into chunks of size 'chunkSize' and clusters those chunks into
         'numClusters' number of clusters.
-        :param text: input text.
-        :return: a tuple(list of sentences after tokenizing text, a list of lists of sentences belonging to each cluster)
+        :param text: input text object.
+        :return: a list of lists of sentences belonging to each cluster
         """
         #if self.Language not in [Language.Arabic, Language.English, Language.Spanish]:
         #    raise Exception("Not implemented for language", self.Language)
         cnlp = StanfordCoreNLP()
-        fdist = nltk.FreqDist(cnlp.parse(text)[0])
+        fdist = nltk.FreqDist(cnlp.parse(text.getText())[0])
         # TODO: the english tokenizer at least also includes punctuation, filter?
         for wordfreqpair in fdist.most_common(500): # TODO: too high for the size of our texts?
             word = wordfreqpair[0]
@@ -36,16 +36,14 @@ def AuthorCluster(object):
             self.MostCommonWords.append(word)
 
         featurizeVectorList = []
-        chunks = self.Chunker.chunk(text, chunkSize)
+        chunkIds, chunks = text.fixed_length_chunk(chunkSize)
         for chunk in chunks:
             featurizeVectorList.append(self.generateFeatureVector(chunk))
 
         km = cluster.KMeans(n_clusters=numClusters, init='k-means++', max_iter=100, n_init=1, verbose=self.Verbose)
         labels = km.fit_predict(featurizeVectorList)
         ret = [[]] * numClusters
-        sentencenum = 0
+
         for i, label in enumerate(labels):
-            for sentence in cnlp.split_sentences(chunks[i]):
-                ret[label].append(sentencenum)
-                sentencenum += 1
-        return (cnlp.split_sentences(text), ret)
+            ret[label] += chunkIds[i]
+        return ret

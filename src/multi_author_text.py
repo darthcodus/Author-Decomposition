@@ -22,13 +22,41 @@ class Text(object):
 
     # def add_untokenized_sentences(self, author, sentences):
     def add_sentences(self, author, sentences):
+        """
+        Add multiple sentence by an author.
+        :param sentences: a list of sentences
+        :param author: author name
+        """
         idx = self._get_authorid(author)
         for sentence in sentences:
             self.Sentences.append(sentence)
             self.AuthorIds.append(idx)
 
     def add_sentence(self, author, sentence):
+        """
+        Add a sentence and corresponding author.
+        :param sentence: a single setence
+        :param author: author name
+        """
         self.add_sentences(author, [sentence])
+
+    def fixed_length_chunk(self, chunk_size):
+        """
+        Separates text into chunks of 'chunk_size' sentences.
+        :param chunk_size: the number of sentences in each chunk
+        :return: a tuple (list of lists of sentence indices per chunk, list of list of sentences per chunk)
+        ( [ [0, 1, 2], [3,4] ], [ ['sen1', 'sen2', 'sen3'], ['sen4', 'sen5'] ])
+        """
+        if chunk_size <= 0:
+            raise Exception('Invalid chunk size.')
+
+        chunkSentences = []
+        chunkSentenceIds = []
+
+        for i in range(0, len(self.Sentences), chunk_size):
+            chunkSentences += self.Sentences[i:min(len(self.Sentences, i + chunk_size))]
+            chunkSentenceIds += list( range(i, min(len(self.Sentences, i + chunk_size))) )
+        return (chunkSentenceIds, chunkSentences)
 
     def getAuthorForSentenceIndex(self, sentenceIdx):
         return self.Authors[self.AuthorIds[sentenceIdx]]
@@ -40,12 +68,19 @@ class Text(object):
         return self.Authors[authorIdx]
 
     def writeToFile(self, fname):
+        """
+        :param fname: File name to write this text object to.
+        """
         with open(fname, 'wb') as f:
             import pickle
             pickle.dump(self, f)
 
     @staticmethod
     def loadFromFile(fname):
+        """
+        :param fname: File name to read a Text object from.
+        :return: the read Text object.
+        """
         with open(fname, 'rb') as f:
             import pickle
             return pickle.load(f)
