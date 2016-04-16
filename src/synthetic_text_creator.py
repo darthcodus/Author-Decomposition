@@ -2,6 +2,9 @@
 
 import os
 import pickle
+from multi_author_text import Text
+
+from corenlp import StanfordCoreNLP
 
 class TextMerger(object):
     def __init__(self, debug = False):
@@ -18,6 +21,8 @@ class TextMerger(object):
         return list(filter(lambda x: x['author'].lower() == author.lower(), self.texts))
 
     def generateText(self, lower, upper):
+        scnlp = StanfordCoreNLP()
+        text = Text()
         textFile = ""
         metaFile = ""
         # lower and upper ignored for now, just randomly concatenates texts
@@ -36,8 +41,9 @@ class TextMerger(object):
             print(newText)
             metaFile += '%d,,, %d,,, %s\n' % (len(textFile), len(textFile) + len(newText) - 1, newAuthor)
             textFile += newText
+            text.add_sentences(newAuthor, scnlp.split_sentences(newText))
             done[curtext] = True
-        return textFile, metaFile
+        return textFile, metaFile, text
 
         """
         for text in self.texts:
@@ -63,10 +69,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t','--texts', help='paths to folder containing texts', required=True)
     parser.add_argument('-c', '--chunk', help='number of sentences per chunk, as -c <size> or -c <lower> <upper> for random values between a range, or 0 to simply randomly join the texts', required=True, nargs = '*')
-    parser.add_argument('-ot', '--outputtextfile', help='output binary (pickle) file containing text', required=True)
-    parser.add_argument('-om', '--outputmetafile', help='output binary file containing metadata', required=True)
     parser.add_argument('-oth', '--hrtxt', help='output human-readable text file', required=False)
     parser.add_argument('-omh', '--hrmeta', help='output human-readable metadata file', required=False)
+    parser.add_argument('-opick', '--pickletext', help='output pickled text file', required=True)
     args = parser.parse_args()
 
     tm = TextMerger()
@@ -87,21 +92,15 @@ def main():
         print("\t\tRead %d texts for author." % len(tm.textsByAuthor(author)))
 
     if len(args.chunk) == 1:
-        textFile, metaFile = tm.generateText(int(args.chunk[0]), int(args.chunk[0]))
+        textFile, metaFile, text = tm.generateText(int(args.chunk[0]), int(args.chunk[0]))
     else:
-        textFile, metaFile = tm.generateText(int(args.chunk[0]), int(args.chunk[1]))
-
-    with open(args.outputtextfile, 'wb') as f:
-        pickle.dump(textFile, f)
-        print("Saved to pickle file", args.outputtextfile)
-
-    with open(args.outputmetafile, 'wb') as f:
-        pickle.dump(metaFile, f)
-        print("Saved to pickle file", args.outputmetafile)
+        textFile, metaFile, text = tm.generateText(int(args.chunk[0]), int(args.chunk[1]))
 
     with open(args.hrtxt, 'wt') as f:
         f.write(textFile)
     with open(args.hrmeta, 'wt') as f:
         f.write(metaFile)
+
+    text.writeToFile(args.pickletext)
 
 main()
