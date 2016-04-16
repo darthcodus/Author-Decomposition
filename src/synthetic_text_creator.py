@@ -2,9 +2,9 @@
 
 import os
 import pickle
-from multi_author_text import Text
+from authorclustering.multi_author_text import Text
 
-from corenlp import StanfordCoreNLP
+from authorclustering.corenlp import StanfordCoreNLP
 
 class TextMerger(object):
     def __init__(self, debug = False):

@@ -1,4 +1,4 @@
-from multi_author_text import Text
+from authorclustering.multi_author_text import Text
 
 def main():
     import argparse
