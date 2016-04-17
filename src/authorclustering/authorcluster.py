@@ -6,7 +6,7 @@ from corenlp import StanfordCoreNLP
 from sklearn import cluster
 from sklearn import metrics
 
-def AuthorCluster(object):
+class AuthorCluster:
     def __init__(self, verbose = False, lang):
         self.Chunker = Chunker(verbose)
         self.Verbose = verbose
