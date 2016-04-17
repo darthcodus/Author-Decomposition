@@ -3,7 +3,7 @@ import argparse
 import glob
 import logging
 
-from authorclustering.corenlp import StanfordCoreNLP
+from .corenlp import StanfordCoreNLP
 
 
 class Feature:

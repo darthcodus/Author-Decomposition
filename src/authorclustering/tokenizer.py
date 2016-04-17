@@ -1,4 +1,4 @@
-from authorclustering.constants import Language
+from .constants import Language
 import nltk
 
 class Tokenizer(object):

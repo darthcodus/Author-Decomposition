@@ -1,4 +1,4 @@
-from authorclustering.corenlp import StanfordCoreNLP
+from .corenlp import StanfordCoreNLP
 
 class Text(object):
     def __init__(self, paragraphs = False):
