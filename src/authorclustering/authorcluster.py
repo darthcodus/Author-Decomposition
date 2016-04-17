@@ -36,9 +36,11 @@ class AuthorCluster:
         print('Chunks: ', chunks)
         km = cluster.KMeans(n_clusters=numClusters, init='k-means++', max_iter=100, n_init=1, verbose=self.Verbose)
         labels = km.fit_predict(featurizeVectorList)
-        ret = [[]] * numClusters
+        ret = [None] * numClusters
 
         print('Labels: ', labels)
         for i, label in enumerate(labels):
+            if ret[label] is None:
+                ret[label] = []
             ret[label] += chunkIds[i]
         return ret
