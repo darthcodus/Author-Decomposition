@@ -1,14 +1,10 @@
 from __future__ import division
-import os
-import sys
-import string
-import math
-import re
-reload(sys)
-sys.setdefaultencoding('UTF8')
+
+
 
 class ClusterEvaluator:
     def __init__(self):
+        return
 
 
     def evaluatePurity(self, clusters, text):

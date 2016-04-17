@@ -1,4 +1,7 @@
 from authorclustering.multi_author_text import Text
+from authorclustering.authorcluster import AuthorCluster
+from authorclustering.clusterEvaluator import ClusterEvaluator
+
 
 def main():
     import argparse
@@ -7,5 +10,13 @@ def main():
     parser.add_argument('-nc', '--numclusters', help='number of author clusters', required=True)
     args = parser.parse_args()
     text = Text.loadFromFile(args.pickledtext)
+    nc = args.numclusters
+
+    ac = AuthorCluster()
+    ce = ClusterEvaluator()
+    clusters = ac.cluster(text, 20, int(nc))
+
+    ce.evaluatePurity(clusters)
+
 
 main()
