@@ -32,10 +32,13 @@ class AuthorCluster:
         for chunk in chunks:
             featurizeVectorList.append(self.generateFeatureVector(chunk))
 
+        print('Chunk Ids: ', chunkIds)
+        print('Chunks: ', chunks)
         km = cluster.KMeans(n_clusters=numClusters, init='k-means++', max_iter=100, n_init=1, verbose=self.Verbose)
         labels = km.fit_predict(featurizeVectorList)
         ret = [[]] * numClusters
 
+        print('Labels: ', labels)
         for i, label in enumerate(labels):
             ret[label] += chunkIds[i]
         return ret
