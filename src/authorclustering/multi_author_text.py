@@ -64,8 +64,8 @@ class Text(object):
         chunkSentenceIds = []
 
         for i in range(0, len(self.Sentences), chunk_size):
-            chunkSentences += self.Sentences[i:min(len(self.Sentences), i + chunk_size)]
-            chunkSentenceIds += list( range(i, min(len(self.Sentences), i + chunk_size)))
+            chunkSentences.append(self.Sentences[i:min(len(self.Sentences), i + chunk_size)])
+            chunkSentenceIds.append(list( range(i, min(len(self.Sentences), i + chunk_size))))
         return (chunkSentenceIds, chunkSentences)
 
     def getAuthorForSentenceIndex(self, sentenceIdx):
