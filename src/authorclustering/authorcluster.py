@@ -1,16 +1,14 @@
 from chunk import Chunker
 from constants import Language
 import nltk
-from corenlp import StanfordCoreNLP
 
 from sklearn import cluster
 from sklearn import metrics
 
 class AuthorCluster:
-    def __init__(self, verbose = False, lang):
+    def __init__(self, verbose = False):
         self.Chunker = Chunker(verbose)
         self.Verbose = verbose
-        self.Language = lang # TODO: needed? ignored for now. Assuming corenlp does the right thing for the langs we need.
         self.MostCommonWords = []
 
     def generateFeatureVector(self, chunk):
@@ -25,11 +23,8 @@ class AuthorCluster:
         :param text: input text object.
         :return: a list of lists of sentences belonging to each cluster
         """
-        #if self.Language not in [Language.Arabic, Language.English, Language.Spanish]:
-        #    raise Exception("Not implemented for language", self.Language)
-        cnlp = StanfordCoreNLP()
-        fdist = nltk.FreqDist(cnlp.parse(text.getText())[0])
-        # TODO: the english tokenizer at least also includes punctuation, filter?
+
+        fdist = nltk.FreqDist(text.getTextTokenizedByWord())
         for wordfreqpair in fdist.most_common(500): # TODO: too high for the size of our texts?
             word = wordfreqpair[0]
             # freq = wordfreqpair[1]

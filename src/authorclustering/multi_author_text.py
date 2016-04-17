@@ -1,9 +1,14 @@
+from corenlp import StanfordCoreNLP
+
 class Text(object):
     def __init__(self, paragraphs = False):
         self.Paragraphs = []
         self.Sentences = []
         self.AuthorIds = []
         self.Authors = []
+        self.Language = None # TODO: needed? ignored for now. Assuming corenlp does the right thing for the langs we need.
+        #if self.Language not in [Language.Arabic, Language.English, Language.Spanish]:
+        #    raise Exception("Not implemented for language", self.Language)
         return
 
     def _get_authorid(self, author):
@@ -19,6 +24,11 @@ class Text(object):
 
     def getTextTokenizedBySentence(self):
         return self.Sentences
+
+    def getTextTokenizedByWord(self):
+        cnlp = StanfordCoreNLP()
+        return cnlp.parse(self.getText())[0]
+        # TODO: the english tokenizer at least also includes punctuation filtering?
 
     # def add_untokenized_sentences(self, author, sentences):
     def add_sentences(self, author, sentences):
