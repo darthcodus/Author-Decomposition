@@ -7,7 +7,7 @@ import re
 reload(sys)
 sys.setdefaultencoding('UTF8')
 
-class ClusterEvaluator(object):
+class ClusterEvaluator:
     def __init__(self):
 
 
