@@ -14,7 +14,7 @@ def main():
 
     ac = AuthorCluster()
     ce = ClusterEvaluator()
-    clusters = ac.cluster(text, 20, int(nc))
+    clusters = ac.cluster(20, int(nc), text)
 
     ce.evaluatePurity(clusters)
 
