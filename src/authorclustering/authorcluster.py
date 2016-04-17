@@ -1,5 +1,3 @@
-from chunk import Chunker
-from constants import Language
 import nltk
 
 from sklearn import cluster
@@ -7,7 +5,6 @@ from sklearn import metrics
 
 class AuthorCluster:
     def __init__(self, verbose = False):
-        self.Chunker = Chunker(verbose)
         self.Verbose = verbose
         self.MostCommonWords = []
 
