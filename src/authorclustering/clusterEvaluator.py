@@ -17,13 +17,12 @@ class ClusterEvaluator:
         # count author classes in cluster
         cluster_class_counts = {}
         for i, clus in enumerate(clusters):
+            cluster_class_counts[i] = {}
             for sent in clus:
                 #cur_class = sent.auth #TODO obtain author class from cur sentence
                 author_index = text.getAuthorIndexForSentence(sent)
-                if i not in cluster_class_counts:
-                    cluster_class_counts[i] = {}
                 if author_index not in cluster_class_counts[i]:
-                    cluster_class_counts[i][author_index] = 1
+                    cluster_class_counts[i][author_index] = 0
                 cluster_class_counts[i][author_index] += 1
 
         clusterMajorityAuthorIndices = []
