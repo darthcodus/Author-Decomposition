@@ -26,8 +26,17 @@ class Text(object):
         return ' '.join(self.Sentences)
 
     def cacheWords(self):
-        cnlp = StanfordCoreNLP()
-        self.Words, self.Tags = cnlp.parse(self.getText())
+        self.Words = []
+        self.Tags = []
+        chunk_size = 1500 # send chunk_size sentences to the server at a time
+        for i in range(0, len(self.Sentences), chunk_size):
+            lower = i
+            upper = min(len(self.Sentences), i + chunk_size)
+            if self.Verbose:
+                print("Fetching parse for setences: %d-%d of %d" % (lower, upper, len(self.Sentences)) )
+            newWords, newTags = cnlp.parse(' '.join(self.Sentences[lower:upper]))
+            self.Words += newWords
+            self.Tags += newTags
 
     def getTextTokenizedBySentence(self):
         return self.Sentences
