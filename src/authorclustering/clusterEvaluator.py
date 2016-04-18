@@ -11,7 +11,7 @@ class ClusterEvaluator:
         Calculates purity for each cluster
         :param: clusters -> return list from authorCluster
         :param: text: Text object containing sentence/author data
-        :return: tuple (list of cluster majority authors, list of cluster purity values)
+        :return: tuple (list of cluster majority authors, list of cluster purity values, overall purity)
         '''
 
         # count author classes in cluster
@@ -29,6 +29,8 @@ class ClusterEvaluator:
 
         clusterMajorityAuthorIndices = []
         clusterPurities = []
+        total_correct = 0
+        total_sen = 0
         # assign majority class label to cluster
         for clusterIdx, class_counts in cluster_class_counts.items():
             if len(class_counts.keys()) == 0:
@@ -42,4 +44,7 @@ class ClusterEvaluator:
             clusterMajorityAuthorIndices.append(majority_class)
             clusterPurities.append(class_purity)
 
-        return clusterMajorityAuthorIndices, clusterPurities
+            total_correct += majority_count
+            total_sen += total_count
+
+        return clusterMajorityAuthorIndices, clusterPurities, total_correct/total_sen
