@@ -18,6 +18,8 @@ class ClusterEvaluator:
         cluster_class_counts = {}
         for i, clus in enumerate(clusters):
             cluster_class_counts[i] = {}
+            if clus is None:
+                continue
             for sent in clus:
                 #cur_class = sent.auth #TODO obtain author class from cur sentence
                 author_index = text.getAuthorIndexForSentence(sent)
@@ -29,6 +31,10 @@ class ClusterEvaluator:
         clusterPurities = []
         # assign majority class label to cluster
         for clusterIdx, class_counts in cluster_class_counts.items():
+            if len(class_counts.keys()) == 0:
+                clusterMajorityAuthorIndices.append(-1)
+                clusterPurities.append(-1)
+                continue
             total_count = sum(class_counts.values())
             majority_class = max(class_counts, key = lambda k: class_counts[k])
             majority_count = class_counts[majority_class]
