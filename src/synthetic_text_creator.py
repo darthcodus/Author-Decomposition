@@ -108,6 +108,7 @@ def main():
         with open(args.hrmeta, 'wt') as f:
             f.write(metaFile)
 
+    text.cacheWords()
     text.writeToFile(args.pickletext)
 
 main()

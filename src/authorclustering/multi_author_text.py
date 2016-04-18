@@ -7,6 +7,8 @@ class Text(object):
         self.AuthorIds = []
         self.Authors = []
         self.Language = None # TODO: needed? ignored for now. Assuming corenlp does the right thing for the langs we need.
+        self.Words = None # TODO: need per sentence words?
+        self.Tags = None
         #if self.Language not in [Language.Arabic, Language.English, Language.Spanish]:
         #    raise Exception("Not implemented for language", self.Language)
         return
@@ -22,10 +24,16 @@ class Text(object):
     def getText(self):
         return ' '.join(self.Sentences)
 
+    def cacheWords(self):
+        cnlp = StanfordCoreNLP()
+        self.Words, self.Tags = cnlp.parse(self.getText())
+
     def getTextTokenizedBySentence(self):
         return self.Sentences
 
     def getTextTokenizedByWord(self):
+        if self.Words is not None:
+            return self.Words
         cnlp = StanfordCoreNLP()
         return cnlp.parse(self.getText())[0]
         # TODO: the english tokenizer at least also includes punctuation filtering?
@@ -41,6 +49,9 @@ class Text(object):
         for sentence in sentences:
             self.Sentences.append(sentence)
             self.AuthorIds.append(idx)
+        if self.Words is not None:
+            cnlp = StanfordCoreNLP()
+            self.Words += cnlp.parse(sentence)[0]
 
     def add_sentence(self, author, sentence):
         """
