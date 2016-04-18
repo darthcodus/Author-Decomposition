@@ -7,8 +7,8 @@ from authorclustering.multi_author_text import Text
 from authorclustering.corenlp import StanfordCoreNLP
 
 class TextMerger(object):
-    def __init__(self, debug = False):
-        self.debug = debug
+    def __init__(self, verbose = False):
+        self.Verbose = verbose
         self.texts = []
 
     def addText(self, author, text):
@@ -74,7 +74,7 @@ def main():
     parser.add_argument('-opick', '--pickletext', help='output file for pickled Text object', required=True)
     args = parser.parse_args()
 
-    tm = TextMerger()
+    tm = TextMerger(verbose=True)
     for subdir, dirs, files in os.walk(args.texts):
         if not files:
             print("\tSkipping: %s" % subdir)
@@ -83,16 +83,19 @@ def main():
         author = os.path.split(subdir)[-1]
         print('\n\nAuthor: ', author)
         for f in files:
-            print('Text: ', f)
+            # print('Text: ', f)
             if f.lower() == '.DS_Store'.lower():
                 print('Ignoring %s' % f)
                 continue
 
             with open(os.path.join(subdir, f), encoding='utf-8') as fin:
                 contents = ''.join(fin.readlines())
-                tm.addText(author, contents)
+                if contents.strip():
+                    tm.addText(author, contents)
+                else:
+                    print("Skipping empty file: ", os.path.join(subdir, f))
                 # print(author, '\n', contents)
-        print(tm.texts)
+        #print(tm.texts)
         print("\t\tRead %d texts for author." % len(tm.textsByAuthor(author)))
 
     if len(args.chunk) == 1:
@@ -108,7 +111,9 @@ def main():
         with open(args.hrmeta, 'wt') as f:
             f.write(metaFile)
 
+    print("Parsing sentences...")
     text.cacheWords()
+    print("Done parsing sentences...")
     text.writeToFile(args.pickletext)
 
 main()
