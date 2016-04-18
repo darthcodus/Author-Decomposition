@@ -1,7 +1,7 @@
 from .corenlp import StanfordCoreNLP
 
 class Text(object):
-    def __init__(self, paragraphs = False):
+    def __init__(self, verbose = False):
         self.Paragraphs = []
         self.Sentences = []
         self.AuthorIds = []
@@ -9,6 +9,7 @@ class Text(object):
         self.Language = None # TODO: needed? ignored for now. Assuming corenlp does the right thing for the langs we need.
         self.Words = None # TODO: need per sentence words?
         self.Tags = None
+        self.Verbose = verbose
         #if self.Language not in [Language.Arabic, Language.English, Language.Spanish]:
         #    raise Exception("Not implemented for language", self.Language)
         return
@@ -97,11 +98,13 @@ class Text(object):
             pickle.dump(self, f)
 
     @staticmethod
-    def loadFromFile(fname):
+    def loadFromFile(fname, verbose = False):
         """
         :param fname: File name to read a Text object from.
         :return: the read Text object.
         """
         with open(fname, 'rb') as f:
             import pickle
-            return pickle.load(f)
+            text = pickle.load(f)
+            text.Verbose = verbose
+            return text
