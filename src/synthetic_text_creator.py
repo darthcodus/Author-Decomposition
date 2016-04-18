@@ -22,7 +22,7 @@ class TextMerger(object):
 
     def generateText(self, lower, upper):
         scnlp = StanfordCoreNLP()
-        text = Text()
+        text = Text(verbose=self.Verbose)
         textFile = ""
         metaFile = ""
         # lower and upper ignored for now, just randomly concatenates texts
@@ -31,18 +31,30 @@ class TextMerger(object):
         import random
         done = [False] * len(self.texts)
         curtext = -1
+        failcount = 0
+        print("Generating text...")
+        donecount = 0
         while any(x is False for x in done):
             curtext = random.randint(0, len(self.texts) - 1)
             if done[curtext]:
                 continue
+            donecount += 1
+            print("At text: %d of %d" % (donecount, len(self.texts)))
             newText = self.texts[curtext]['text']
             newAuthor = self.texts[curtext]['author']
-            print(textFile)
-            print(newText)
-            metaFile += '%d,,, %d,,, %s\n' % (len(textFile), len(textFile) + len(newText) - 1, newAuthor)
-            textFile += newText
-            text.add_sentences(newAuthor, scnlp.split_sentences(newText))
+            #print(textFile)
+            #print(newText)
+            try:
+                text.add_sentences(newAuthor, scnlp.split_sentences(newText))
+                metaFile += '%d,,, %d,,, %s\n' % (len(textFile), len(textFile) + len(newText) - 1, newAuthor)
+                textFile += newText
+            except:
+                failcount += 1
+                print("Failed for index: %d", curtext)
+                print(newText)
+                print(newAuthor)
             done[curtext] = True
+        print("Failed for %d texts", failcount)
         return textFile, metaFile, text
 
         """
