@@ -34,7 +34,8 @@ class AuthorCluster:
 
         print('Chunk Ids: ', chunkIds)
         print('Chunks: ', chunks)
-        km = cluster.KMeans(n_clusters=numClusters, init='k-means++', max_iter=100, n_init=1, verbose=self.Verbose)
+        #km = cluster.KMeans(n_clusters=numClusters, init='k-means++', max_iter=100, n_init=1, verbose=self.Verbose)
+        km = cluster.SpectralClustering(n_clusters=numClusters, affinity = 'nearest_neighbors')
         labels = km.fit_predict(featurizeVectorList)
         ret = [None] * numClusters
 
@@ -44,3 +45,11 @@ class AuthorCluster:
                 ret[label] = []
             ret[label] += chunkIds[i]
         return ret
+
+    def cluster_unknown_number(self, text, chunkSize):
+        """
+        Splits text into chunks of size 'chunkSize' and clusters those chunks
+        :param text: input text object.
+        :return: (number of clsuters, a list of lists of sentences belonging to each cluster)
+        """
+        raise NotImplementedError()
