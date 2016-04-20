@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import glob
 import os
-import unittest
+import nosetest
 
-from corenlp import StanfordCoreNLP
+from authorclustering.corenlp import StanfordCoreNLP
 
 
-class StanfordCoreNLPTest(unittest.TestCase):
+class StanfordCoreNLPTest(nosetest.TestCase):
     def setUp(self):
         self.nlp = StanfordCoreNLP('http://192.241.215.92:8011')
 
@@ -35,4 +35,4 @@ class StanfordCoreNLPTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    nosetest.main()
