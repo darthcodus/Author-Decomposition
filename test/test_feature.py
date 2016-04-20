@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import os
-import nosetest
+from unittest import TestCase
 
 from authorclustering.corenlp import StanfordCoreNLP
 from authorclustering.feature import Feature
 
 
-class FeatureTest(nosetest.TestCase):
+class FeatureTest(TestCase):
     def setUp(self):
         nlp = StanfordCoreNLP('http://192.241.215.92:8011')
         self.wf = Feature(nlp)
