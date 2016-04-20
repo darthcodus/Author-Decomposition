@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import os
-import unittest
+from unittest import TestCase
 
-from corenlp import StanfordCoreNLP
-from feature import Feature
+from authorclustering.corenlp import StanfordCoreNLP
+from authorclustering.feature import Feature
 
 
-class FeatureTest(unittest.TestCase):
+class FeatureTest(TestCase):
     def setUp(self):
         nlp = StanfordCoreNLP('http://192.241.215.92:8011')
         self.wf = Feature(nlp)
@@ -28,4 +28,4 @@ class FeatureTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    nosetest.main()

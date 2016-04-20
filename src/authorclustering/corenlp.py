@@ -34,6 +34,9 @@ class StanfordCoreNLP:
         :return: a tuple (list of words, list of POS tags)
         """
         assert isinstance(text, str)
+        if text.strip() == '':
+            return []
+
         output = self._annotate(text, properties={
             "annotators": "tokenize,ssplit,pos",
             "coref.md.type": "dep",
@@ -59,6 +62,10 @@ class StanfordCoreNLP:
         """
         assert isinstance(text, str)
         text = text.replace('\n', '')
+
+        if text.strip() == '':
+            return []
+
         output = self._annotate(text, properties={
             "annotators": "tokenize,ssplit",
             "coref.md.type": "dep",

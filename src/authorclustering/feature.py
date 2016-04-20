@@ -2,6 +2,8 @@
 import argparse
 import glob
 import logging
+from copy import deepcopy
+from multiprocessing.pool import Pool
 
 from .corenlp import StanfordCoreNLP
 
@@ -20,17 +22,17 @@ class Feature:
         self.logger.setLevel(logging.INFO)
         self.logger.addHandler(handler)
 
-    def build_model(self, input_dir,
-                    word_path, char_ngram_path, postag_path, bipostag_path):
+    def build_model(self, input_dir, word_path=None, char_ngram_path=None,
+                    postag_path=None, bipostag_path=None):
         assert isinstance(input_dir, str)
-        assert isinstance(word_path, str)
-        assert isinstance(char_ngram_path, str)
-        assert isinstance(postag_path, str)
-        assert isinstance(bipostag_path, str)
+        assert isinstance(word_path, str) or word_path is None
+        assert isinstance(char_ngram_path, str) or char_ngram_path is None
+        assert isinstance(postag_path, str) or postag_path is None
+        assert isinstance(bipostag_path, str) or bipostag_path is None
 
         input_paths = str.format('{}/*/*', input_dir)
         chunks = []
-        sentences = []
+        paragraphs = []
         texts = ''
 
         self.logger.info('Loading corpora...')
@@ -38,8 +40,8 @@ class Feature:
         for file_path in glob.glob(input_paths):
             with open(file_path, 'r', encoding='utf-8') as file:
                 for line in file:
-                    sentences.append(line)
-                    if len(texts) + len(line) >= 90000:
+                    paragraphs.append(line)
+                    if len(texts) + len(line) >= 100000:
                         chunks.append(texts)
                         texts = ''
                     texts += line
@@ -52,13 +54,18 @@ class Feature:
 
         self.logger.info('Parsing...')
 
-        for chunk in chunks:
-            w, p = self.nlp.parse(chunk)
-            words.extend(w)
-            postags.extend(p)
+        with Pool() as pool:
+            args = []
+            for chunk in chunks:
+                args.append((deepcopy(self.nlp), chunk))
 
-        for sentence in sentences:
-            g = self._make_ngram(sentence, self.num_gram)
+            results = pool.starmap(Feature._multi_run, args)
+            for result in results:
+                words.extend(result[0])
+                postags.extend(result[1])
+
+        for para in paragraphs:
+            g = self._make_ngram(para, self.num_gram)
             chars.extend(g)
 
         for pair in self._make_ngram(postags, 2):
@@ -71,12 +78,21 @@ class Feature:
         postag_model = self.count_tokens(postags)
         bigram_model = self.count_tokens(bipostag)
 
-        self.save_model(word_model, word_path)
-        self.save_model(char_model, char_ngram_path)
-        self.save_model(postag_model, postag_path)
-        self.save_model(bigram_model, bipostag_path)
+        if word_path is not None:
+            self.save_model(word_model, word_path)
+            self.logger.info('Exported word frequency model to files.')
 
-        self.logger.info('Saved to files.')
+        if char_ngram_path is not None:
+            self.save_model(char_model, char_ngram_path)
+            self.logger.info('Exported character n-gram model to files.')
+
+        if postag_path is not None:
+            self.save_model(postag_model, postag_path)
+            self.logger.info('Exported POS tag model to files.')
+
+        if bipostag_path is not None:
+            self.save_model(bigram_model, bipostag_path)
+            self.logger.info('Exported POS tag bigram model to files.')
 
     @staticmethod
     def _make_ngram(iterable, size):
@@ -103,14 +119,22 @@ class Feature:
             for word, num in model.items():
                 file.write(str.format('{} {}\n', word, num))
 
+    @staticmethod
+    def _multi_run(nlp, texts):
+        assert isinstance(nlp, StanfordCoreNLP)
+        assert isinstance(texts, str)
+        words, postags = nlp.parse(texts)
+        return words, postags
+
 
 def main():
     parser = argparse.ArgumentParser(description='This generates feature metadata.')
-    parser.add_argument('-t', metavar='<../corpora>', dest='input_path', help='Paths to folder containing texts', required=True)
-    parser.add_argument('-word', metavar='<output_word.txt>', dest='word_file', help='Word frequency output file', required=True)
-    parser.add_argument('-char', metavar='<output_char.txt>', dest='char_file', help='Character 4-gram output file', required=True)
-    parser.add_argument('-pos', metavar='<output_pos.txt>', dest='pos_file', help='Character 4-gram output file', required=True)
-    parser.add_argument('-bipos', metavar='<output_bipos.txt>', dest='bipos_file', help='Character 4-gram output file', required=True)
+    parser.add_argument('-t', metavar='<../corpora/spanish_blogs2>', dest='input_path', help='Paths to folder containing texts', required=True)
+    parser.add_argument('-url', metavar='<192.241.215.92>', dest='url', help='CoreNLP server URL', required=False)
+    parser.add_argument('-word', metavar='<output_word.txt>', dest='word_file', help='Word frequency output file', required=False)
+    parser.add_argument('-char', metavar='<output_char.txt>', dest='char_file', help='Character 4-gram output file', required=False)
+    parser.add_argument('-pos', metavar='<output_pos.txt>', dest='pos_file', help='Character 4-gram output file', required=False)
+    parser.add_argument('-bipos', metavar='<output_bipos.txt>', dest='bipos_file', help='Character 4-gram output file', required=False)
     args = parser.parse_args()
 
     input_path = args.input_path
@@ -118,8 +142,10 @@ def main():
     char_file = args.char_file
     pos_file = args.pos_file
     bipos_file = args.bipos_file
-
-    nlp = StanfordCoreNLP()
+    url = '192.241.215.92'
+    if args.url is not None:
+        url = args.url
+    nlp = StanfordCoreNLP(str.format('http://{}:8011', url))
     wf = Feature(nlp)
     wf.build_model(input_path, word_file, char_file, pos_file, bipos_file)
 
