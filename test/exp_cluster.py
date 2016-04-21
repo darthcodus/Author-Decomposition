@@ -98,28 +98,104 @@ class Feature:
             for line in file:
                 elements = line.split()
                 assert len(elements) == 3
-                self.postag_bigrams[(elements[0], elements[1])] = int(elements[2])
+                key = str.format('{} {}', elements[0], elements[1])
+                self.postag_bigrams[key] = int(elements[2])
 
     def vectorize(self, chunks):
         assert isinstance(chunks, list)
+
+        parsed_words = {}
+        parsed_postags = {}
+        with Pool() as pool:
+            results = pool.map(Feature._parallel_parse, chunks)
+            for i, (words, postags) in enumerate(results):
+                parsed_words[i] = words
+                parsed_postags[i] = postags
+
         vectors = []
         with Pool() as pool:
             args = []
-            for chunk in chunks:
-                args.append((list(self.words.keys()), chunk))
-            returns = pool.starmap(Feature._parallel_vectorize, args)
-            for r in returns:
-                vectors.append(r)
+            for i, chunk in enumerate(chunks):
+                args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
+                             self.words, None, None, None))
+            results = pool.starmap(Feature._parallel_vectorize, args)
+            vectors.extend(results)
+
+        with Pool() as pool:
+            args = []
+            for i, chunk in enumerate(chunks):
+                args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
+                             None, self.char_ngrams, None, None))
+            results = pool.starmap(Feature._parallel_vectorize, args)
+            for i, result in enumerate(results):
+                vectors[i].extend(results)
+
+        # with Pool() as pool:
+        #     args = []
+        #     for i, chunk in enumerate(chunks):
+        #         args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
+        #                      None, None, self.postags, None))
+        #     results = pool.starmap(Feature._parallel_vectorize, args)
+        #     for i, result in enumerate(results):
+        #         vectors[i].extend(results)
+        #
+        # with Pool() as pool:
+        #     args = []
+        #     for i, chunk in enumerate(chunks):
+        #         args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
+        #                      None, None, None, self.postag_bigrams))
+        #     results = pool.starmap(Feature._parallel_vectorize, args)
+        #     for i, result in enumerate(results):
+        #         vectors[i].extend(results)
+
         return vectors
 
     @staticmethod
-    def _parallel_vectorize(ref_words, chunk):
-        assert isinstance(ref_words, list)
+    def _parallel_parse(chunk):
         assert isinstance(chunk, str)
         nlp = StanfordCoreNLP('http://localhost:8011')
         words, postags = nlp.parse(chunk)
-        counter = Counter(words)
-        return [counter[x] for x in ref_words]
+        return words, postags
+
+    @staticmethod
+    def _parallel_vectorize(chunk, words, postags, ref_words=None, ref_char_grams=None,
+                            ref_postags=None, ref_postag_bigrams=None):
+        assert isinstance(chunk, str)
+        assert isinstance(words, list)
+        assert isinstance(postags, list)
+        assert isinstance(ref_words, dict) or ref_words is None
+        assert isinstance(ref_char_grams, dict) or ref_char_grams is None
+        assert isinstance(ref_postags, dict) or ref_postags is None
+        assert isinstance(ref_postag_bigrams, dict) or ref_postag_bigrams is None
+
+        vector = []
+
+        if ref_words is not None:
+            word_counter = Counter(words)
+            vector.extend([x in word_counter for x in ref_words])
+
+        if ref_char_grams is not None:
+            char_grams = Feature._make_ngram(chunk, 4)
+            vector.extend([x in char_grams for x in ref_char_grams])
+
+        if ref_postags is not None:
+            tag_counter = Counter(postags)
+            vector.extend([x in tag_counter for x in ref_postags])
+
+        if ref_postag_bigrams is not None:
+            postag_bigrams = set()
+            for pair in Feature._make_ngram(postags, 2):
+                postag_bigrams.add(str.format('{} {}', pair[0], pair[1]))
+            vector.extend([x in postag_bigrams for x in ref_postag_bigrams])
+
+        return vector
+
+    @staticmethod
+    def _make_ngram(iterable, size):
+        grams = set()
+        for i in range(len(iterable) - size):
+            grams.add(iterable[i:i + size])
+        return grams
 
     @staticmethod
     def remove_features(vectors):
@@ -133,8 +209,9 @@ class Evaluation:
     def purity(labels, chunks):
         assert isinstance(chunks, list)
 
-        print(str.format('Num of labels: {}', len(labels)))
-        print(str.format('Num of chunks: {}', len(chunks)))
+        result_text = ''
+        result_text += str.format('Num of labels: {}\n', len(labels))
+        result_text += str.format('Num of chunks: {}\n', len(chunks))
 
         chunk_majorities = []
         for chunk in chunks:
@@ -152,14 +229,14 @@ class Evaluation:
             counter = Counter(clusters[key])
             major_author, sub_purity = counter.most_common(1)[0]
             sum_majority += sub_purity
-            print(str.format(
-                'Cluster id {} major author: {}, purity: {}',
-                key, major_author, sub_purity / len(clusters[key]))
+            result_text += str.format(
+                'Cluster id {} major author: {}, purity: {}\n',
+                key, major_author, sub_purity / len(clusters[key])
             )
 
         total_purity = (1 / len(labels)) * sum_majority
-        print(str.format('Total purity: {}', total_purity))
-        return total_purity
+        result_text += str.format('Total purity: {}\n', total_purity)
+        return result_text
 
 
 def main():
@@ -190,8 +267,12 @@ def main():
     chunk.append_sentences('alejandro-nieto-gonzalez', corpus1.sentences)
     chunk.append_sentences('aurelio-jimenez', corpus2.sentences)
     chunk.append_sentences('javier-j-navarro', corpus3.sentences)
-    chunks = chunk.simple_concat(10)
-    logger.info(str.format('Number of chunks: {}', len(chunks)))
+
+    del corpus1, corpus2, corpus3
+
+    chunk_size = 10
+    chunks = chunk.simple_concat(chunk_size)
+    logger.info(str.format('Number of chunks: {}, chunk size: {}', len(chunks), chunk_size))
 
     logger.info('Loading features.')
     feature = Feature()
@@ -206,17 +287,20 @@ def main():
     for chunk in chunks:
         trans_chunks.append(chunk['text'])
     vectors = feature.vectorize(trans_chunks)
+    logger.info(str.format('Number of features: {}', len(vectors[0])))
 
     logger.info('Removing features.')
     vectors = feature.remove_features(vectors)
+    logger.info(str.format('Number of features: {}', len(vectors[0])))
 
     logger.info('Clustering.')
-    clustering = SpectralClustering(n_clusters=3)
+    clustering = SpectralClustering(n_clusters=3, affinity='nearest_neighbors', n_neighbors=1000)
     labels = clustering.fit_predict(vectors)
 
     logger.info('Evaluating.')
     evaluation = Evaluation()
-    evaluation.purity(labels, chunks)
+    result = evaluation.purity(labels, chunks)
+    logger.info(str.format('==RESULT==\n{}', result))
 
     logger.info('Done.')
 
