@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import copy
 import logging
 from collections import Counter
 from multiprocessing.pool import Pool
@@ -103,7 +102,6 @@ class Feature:
 
     def vectorize(self, chunks):
         assert isinstance(chunks, list)
-
         parsed_words = {}
         parsed_postags = {}
         with Pool() as pool:
@@ -116,38 +114,10 @@ class Feature:
         with Pool() as pool:
             args = []
             for i, chunk in enumerate(chunks):
-                args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
-                             self.words, self.char_ngrams, None, None))
+                args.append((chunk, parsed_words.get(i), tuple(parsed_postags.get(i)),
+                             self.words, self.char_ngrams, self.postags, self.postag_bigrams))
             results = pool.starmap(Feature._parallel_vectorize, args)
             vectors.extend(results)
-
-        # with Pool() as pool:
-        #     args = []
-        #     for i, chunk in enumerate(chunks):
-        #         args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
-        #                      None, self.char_ngrams, None, None))
-        #     results = pool.starmap(Feature._parallel_vectorize, args)
-        #     for i, result in enumerate(results):
-        #         vectors[i].extend(results)
-        #
-        # with Pool() as pool:
-        #     args = []
-        #     for i, chunk in enumerate(chunks):
-        #         args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
-        #                      None, None, self.postags, None))
-        #     results = pool.starmap(Feature._parallel_vectorize, args)
-        #     for i, result in enumerate(results):
-        #         vectors[i].extend(results)
-        #
-        # with Pool() as pool:
-        #     args = []
-        #     for i, chunk in enumerate(chunks):
-        #         args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
-        #                      None, None, None, self.postag_bigrams))
-        #     results = pool.starmap(Feature._parallel_vectorize, args)
-        #     for i, result in enumerate(results):
-        #         vectors[i].extend(results)
-
         return vectors
 
     @staticmethod
@@ -162,7 +132,7 @@ class Feature:
                             ref_postags=None, ref_postag_bigrams=None):
         assert isinstance(chunk, str)
         assert isinstance(words, list)
-        assert isinstance(postags, list)
+        assert isinstance(postags, tuple)
         assert isinstance(ref_words, dict) or ref_words is None
         assert isinstance(ref_char_grams, dict) or ref_char_grams is None
         assert isinstance(ref_postags, dict) or ref_postags is None
