@@ -117,19 +117,19 @@ class Feature:
             args = []
             for i, chunk in enumerate(chunks):
                 args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
-                             self.words, None, None, None))
+                             self.words, self.char_ngrams, None, None))
             results = pool.starmap(Feature._parallel_vectorize, args)
             vectors.extend(results)
 
-        with Pool() as pool:
-            args = []
-            for i, chunk in enumerate(chunks):
-                args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
-                             None, self.char_ngrams, None, None))
-            results = pool.starmap(Feature._parallel_vectorize, args)
-            for i, result in enumerate(results):
-                vectors[i].extend(results)
-
+        # with Pool() as pool:
+        #     args = []
+        #     for i, chunk in enumerate(chunks):
+        #         args.append((chunk, parsed_words.get(i), parsed_postags.get(i),
+        #                      None, self.char_ngrams, None, None))
+        #     results = pool.starmap(Feature._parallel_vectorize, args)
+        #     for i, result in enumerate(results):
+        #         vectors[i].extend(results)
+        #
         # with Pool() as pool:
         #     args = []
         #     for i, chunk in enumerate(chunks):
@@ -200,6 +200,9 @@ class Feature:
     @staticmethod
     def remove_features(vectors):
         assert isinstance(vectors, list)
+        num = len(vectors[0])
+        for v in vectors:
+            assert num == len(v)
         sel = VarianceThreshold(.8 * (1 - .8))
         return sel.fit_transform(vectors)
 
@@ -250,7 +253,7 @@ def main():
     logger.info('Loading corpus 1.')
     corpus1 = Corpus()
     corpus1.add_file('../models/spanish_blogs2/alejandro-nieto-gonzalez.txt')
-    logger.info(str.format('Corpus 1 sentences: {}', len(corpus1.sentences)))
+    logger.info(str.format('Corpus 1, sentences: {}', len(corpus1.sentences)))
 
     logger.info('Loading corpus 2.')
     corpus2 = Corpus()
