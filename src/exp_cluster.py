@@ -237,14 +237,13 @@ def main():
 
     logger.info('Chunking.')
     chunk = Chunk()
-    # min_num_sentences = min(len(corpus1.sentences), len(corpus2.sentences), len(corpus3.sentences))
     chunk.append_sentences('alejandro-nieto-gonzalez', corpus1.sentences)
     chunk.append_sentences('aurelio-jimenez', corpus2.sentences)
     chunk.append_sentences('javier-j-navarro', corpus3.sentences)
 
     del corpus1, corpus2, corpus3
 
-    chunk_size = 10
+    chunk_size = 40
     chunks = chunk.simple_concat(chunk_size)
     logger.info(str.format('Number of chunks: {}, chunk size: {}', len(chunks), chunk_size))
 
@@ -270,7 +269,9 @@ def main():
     logger.info('Clustering.')
     n_clusters = 3
     n_neighbors = int(len(chunks) / n_clusters - (n_clusters * 0.1))
-    clustering = SpectralClustering(n_clusters=n_clusters, affinity='nearest_neighbors', n_neighbors=n_neighbors)
+    clustering = SpectralClustering(n_clusters=n_clusters,
+                                    affinity='nearest_neighbors',
+                                    n_neighbors=n_neighbors)
     labels = clustering.fit_predict(vectors)
 
     logger.info('Evaluating.')
