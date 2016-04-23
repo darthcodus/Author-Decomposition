@@ -138,7 +138,7 @@ class Feature:
     @staticmethod
     def _make_ngram(iterable, size):
         grams = []
-        for i in range(len(iterable) - size):
+        for i in range(len(iterable) - size + 1):
             grams.append(iterable[i:i + size])
         return grams
 
