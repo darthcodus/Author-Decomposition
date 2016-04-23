@@ -66,39 +66,74 @@ class Chunk:
 
 class Feature:
     def __init__(self):
-        self.words = {}
-        self.char_ngrams = {}
-        self.postags = {}
-        self.postag_bigrams = {}
+        self.words = set()
+        self.word_bigrams = set()
+        self.char_ngrams = set()
+        self.postags = set()
+        self.postag_bigrams = set()
+        self.postag_trigrams = set()
+        self.postag_fourgrams = set()
 
-    def load(self, word_path, char_ngram_path, postag_path, postag_bigram_path):
-        assert isinstance(word_path, str)
-        assert isinstance(char_ngram_path, str)
-        assert isinstance(postag_path, str)
-        assert isinstance(postag_bigram_path, str)
+    def load(self, word_path=None, word_bigram_path=None, char_ngram_path=None,
+             postag_path=None, postag_bigram_path=None,
+             postag_trigram_path=None, postag_fourgram_path=None):
+        if word_path is not None:
+            assert isinstance(word_path, str)
+            with open(word_path, 'r', encoding='utf=8') as file:
+                for line in file:
+                    elements = line.split()
+                    assert len(elements) == 2
+                    self.words.add(elements[0])
 
-        with open(word_path, 'r', encoding='utf=8') as file:
-            for line in file:
-                elements = line.split()
-                assert len(elements) == 2
-                self.words[elements[0]] = int(elements[1])
+        if word_bigram_path is not None:
+            assert isinstance(word_bigram_path, str)
+            with open(word_bigram_path, 'r', encoding='utf=8') as file:
+                for line in file:
+                    elements = line.split()
+                    assert len(elements) == 3
+                    key = str.format('{} {}', elements[0], elements[1])
+                    self.word_bigrams.add(key)
 
-        with open(char_ngram_path, 'r', encoding='utf=8') as file:
-            for line in file:
-                self.char_ngrams[line[:4]] = int(line[5:])
+        if char_ngram_path is not None:
+            assert isinstance(char_ngram_path, str)
+            with open(char_ngram_path, 'r', encoding='utf=8') as file:
+                for line in file:
+                    self.char_ngrams.add(line[:4])
 
-        with open(postag_path, 'r', encoding='utf=8') as file:
-            for line in file:
-                elements = line.split()
-                assert len(elements) == 2
-                self.postags[elements[0]] = int(elements[1])
+        if postag_path is not None:
+            assert isinstance(postag_path, str)
+            with open(postag_path, 'r', encoding='utf=8') as file:
+                for line in file:
+                    elements = line.split()
+                    assert len(elements) == 2
+                    self.postags.add(elements[0])
 
-        with open(postag_bigram_path, 'r', encoding='utf=8') as file:
-            for line in file:
-                elements = line.split()
-                assert len(elements) == 3
-                key = str.format('{} {}', elements[0], elements[1])
-                self.postag_bigrams[key] = int(elements[2])
+        if postag_bigram_path is not None:
+            assert isinstance(postag_bigram_path, str)
+            with open(postag_bigram_path, 'r', encoding='utf=8') as file:
+                for line in file:
+                    elements = line.split()
+                    assert len(elements) == 3
+                    key = str.format('{} {}', elements[0], elements[1])
+                    self.postag_bigrams.add(key)
+
+        if postag_trigram_path is not None:
+            assert isinstance(postag_trigram_path, str)
+            with open(postag_trigram_path, 'r', encoding='utf=8') as file:
+                for line in file:
+                    elements = line.split()
+                    assert len(elements) == 4
+                    key = str.format('{} {} {}', elements[0], elements[1], elements[2])
+                    self.postag_trigrams.add(key)
+
+        if postag_fourgram_path is not None:
+            assert isinstance(postag_fourgram_path, str)
+            with open(postag_fourgram_path, 'r', encoding='utf=8') as file:
+                for line in file:
+                    elements = line.split()
+                    assert len(elements) == 5
+                    key = str.format('{} {} {} {}', elements[0], elements[1], elements[2], elements[3])
+                    self.postag_fourgrams.add(key)
 
     def vectorize(self, chunks):
         assert isinstance(chunks, list)
@@ -114,8 +149,13 @@ class Feature:
         with Pool() as pool:
             args = []
             for i, chunk in enumerate(chunks):
-                args.append((chunk, parsed_words.get(i), tuple(parsed_postags.get(i)),
-                             self.words, self.char_ngrams, self.postags, self.postag_bigrams))
+                # args.append((chunk, tuple(parsed_words.get(i)), tuple(parsed_postags.get(i)),
+                #              self.words, self.char_ngrams, self.postags, self.postag_bigrams,
+                #              self.word_bigrams, self.postag_trigrams, self.postag_fourgrams))
+
+                args.append((chunk, tuple(parsed_words.get(i)), tuple(parsed_postags.get(i)),
+                             self.words, self.char_ngrams, None, None,
+                             self.word_bigrams, self.postag_trigrams, None))
             results = pool.starmap(Feature._parallel_vectorize, args)
             vectors.extend(results)
         return vectors
@@ -129,14 +169,18 @@ class Feature:
 
     @staticmethod
     def _parallel_vectorize(chunk, words, postags, ref_words=None, ref_char_grams=None,
-                            ref_postags=None, ref_postag_bigrams=None):
+                            ref_postags=None, ref_postag_bigrams=None, ref_word_bigrams=None,
+                            ref_postag_trigram=None, ref_postag_fourgram=None):
         assert isinstance(chunk, str)
-        assert isinstance(words, list)
+        assert isinstance(words, tuple)
         assert isinstance(postags, tuple)
-        assert isinstance(ref_words, dict) or ref_words is None
-        assert isinstance(ref_char_grams, dict) or ref_char_grams is None
-        assert isinstance(ref_postags, dict) or ref_postags is None
-        assert isinstance(ref_postag_bigrams, dict) or ref_postag_bigrams is None
+        assert isinstance(ref_words, set) or ref_words is None
+        assert isinstance(ref_char_grams, set) or ref_char_grams is None
+        assert isinstance(ref_postags, set) or ref_postags is None
+        assert isinstance(ref_postag_bigrams, set) or ref_postag_bigrams is None
+        assert isinstance(ref_word_bigrams, set) or ref_word_bigrams is None
+        assert isinstance(ref_postag_trigram, set) or ref_postag_trigram is None
+        assert isinstance(ref_postag_fourgram, set) or ref_postag_fourgram is None
 
         vector = []
 
@@ -157,6 +201,24 @@ class Feature:
             for pair in Feature._make_ngram(postags, 2):
                 postag_bigrams.add(str.format('{} {}', pair[0], pair[1]))
             vector.extend([x in postag_bigrams for x in ref_postag_bigrams])
+
+        if ref_word_bigrams is not None:
+            word_bigrams = set()
+            for pair in Feature._make_ngram(words, 2):
+                word_bigrams.add(str.format('{} {}', pair[0], pair[1]))
+            vector.extend([x in word_bigrams for x in ref_word_bigrams])
+
+        if ref_postag_trigram is not None:
+            postag_trigrams = set()
+            for pair in Feature._make_ngram(postags, 3):
+                postag_trigrams.add(str.format('{} {} {}', pair[0], pair[1], pair[2]))
+            vector.extend([x in postag_trigrams for x in ref_postag_trigram])
+
+        if ref_postag_fourgram is not None:
+            postag_fourgrams = set()
+            for pair in Feature._make_ngram(words, 4):
+                postag_fourgrams.add(str.format('{} {} {} {}', pair[0], pair[1], pair[2], pair[3]))
+            vector.extend([x in postag_fourgrams for x in ref_postag_fourgram])
 
         return vector
 
@@ -243,17 +305,23 @@ def main():
 
     del corpus1, corpus2, corpus3
 
-    chunk_size = 40
+    chunk_size = 20
     chunks = chunk.simple_concat(chunk_size)
     logger.info(str.format('Number of chunks: {}, chunk size: {}', len(chunks), chunk_size))
 
     logger.info('Loading features.')
     feature = Feature()
     word_path = '../models/spanish_blogs2/output_word.txt'
+    word_bigram_path = '../models/spanish_blogs2/output_biword.txt'
     char_ngram_path = '../models/spanish_blogs2/output_char.txt'
     postag_path = '../models/spanish_blogs2/output_pos.txt'
     postag_bigram_path = '../models/spanish_blogs2/output_bipos.txt'
-    feature.load(word_path, char_ngram_path, postag_path, postag_bigram_path)
+    postag_trigram_path = '../models/spanish_blogs2/output_tripos.txt'
+    postag_fourgram_path = '../models/spanish_blogs2/output_4pos.txt'
+    feature.load(word_path=word_path, word_bigram_path=word_bigram_path,
+                 char_ngram_path=char_ngram_path, postag_path=postag_path,
+                 postag_bigram_path=postag_bigram_path, postag_trigram_path=postag_trigram_path,
+                 postag_fourgram_path=postag_fourgram_path)
 
     logger.info('Vectorizing.')
     trans_chunks = []
