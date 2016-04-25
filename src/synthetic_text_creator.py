@@ -10,18 +10,19 @@ class TextMerger(object):
     def __init__(self, verbose = False):
         self.Verbose = verbose
         self.texts = {}
+        self.failcount = 0
 
     def addText(self, author, text):
-        failcount = 0
         scnlp = StanfordCoreNLP()
         if author not in self.texts:
             self.texts[author] = []
-        if True:
-            print('Text: %s' % text)
+        try:
+            #print('Text: %s' % text)
             self.texts[author].extend(scnlp.split_sentences(text))
-        if True:
-            failcount += 1
-            print('Failure #%d' % failcount)
+        except Exception as e:
+            self.failcount += 1
+            print('Exception:', e)
+            print('Failure #%d' % self.failcount)
             print('Failed for the given text by author %s' % author)
 
     def generateText(self, lower, upper):
