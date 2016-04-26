@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import logging
 from collections import Counter
 from multiprocessing.pool import Pool
@@ -44,7 +45,7 @@ class Chunk:
         for sentence in sentences:
             self.sentences.append({'author': author, 'text': sentence})
 
-    def fixed_length_chunk(self, size):
+    def generate(self, size):
         assert isinstance(size, int)
         if size <= 0:
             raise Exception('Invalid chunk size less than 0.')
@@ -136,8 +137,10 @@ class Feature:
                     key = str.format('{} {} {} {}', elements[0], elements[1], elements[2], elements[3])
                     self.postag_fourgrams.add(key)
 
-    def vectorize(self, chunks):
+    def vectorize(self, chunks, features):
         assert isinstance(chunks, list)
+        assert isinstance(features, str)
+
         parsed_words = {}
         parsed_postags = {}
         with Pool() as pool:
@@ -146,17 +149,21 @@ class Feature:
                 parsed_words[i] = words
                 parsed_postags[i] = postags
 
+        words = self.words if 'w' in features else None
+        word_bigrams = self.word_bigrams if 'W' in features else None
+        char_ngrams = self.char_ngrams if 'c' in features else None
+        postags = self.postags if 'p' in features else None
+        postag_bigrams = self.postag_bigrams if 'P' in features else None
+        postag_trigrams = self.postag_trigrams if 'T' in features else None
+        postag_fourgrams = None
+
         vectors = []
         with Pool() as pool:
             args = []
             for i, chunk in enumerate(chunks):
-                # args.append((chunk, tuple(parsed_words.get(i)), tuple(parsed_postags.get(i)),
-                #              self.words, self.char_ngrams, self.postags, self.postag_bigrams,
-                #              self.word_bigrams, self.postag_trigrams, self.postag_fourgrams))
-
                 args.append((chunk, tuple(parsed_words.get(i)), tuple(parsed_postags.get(i)),
-                             None, None, None, None,
-                             self.word_bigrams, None, None))
+                             words, char_ngrams, postags, postag_bigrams,
+                             word_bigrams, postag_trigrams, postag_fourgrams))
             results = pool.starmap(Feature._parallel_vectorize, args)
             vectors.extend(results)
         return vectors
@@ -275,6 +282,29 @@ class Evaluation:
         return result_text
 
 
+class CommandLineParser:
+    @staticmethod
+    def parse():
+        feature_help = 'w:Word frequency, ' \
+                       'W:Word bigram, ' \
+                       'c:Character 4-gram, ' \
+                       'p:POS tag, ' \
+                       'P:POS tag bigram, ' \
+                       'T:POS tag trigram'
+        metavar = 'wWcpPT'
+        parser = argparse.ArgumentParser()
+        parser.add_argument('features', metavar=metavar, nargs='?', help=feature_help)
+        parser.add_argument('-c', metavar='20', dest='chunk_size', type=int, required=True)
+        args = parser.parse_args()
+        features = args.features
+        chunk_size = args.chunk_size
+
+        if not any([f in metavar for f in features]):
+            parser.print_help()
+            exit()
+        return features, chunk_size
+
+
 def main():
     formatter = logging.Formatter('%(asctime)s %(message)s')
     handler = logging.StreamHandler()
@@ -283,13 +313,14 @@ def main():
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
 
+    features, chunk_size = CommandLineParser.parse()
+
     path_prefix = '../models/spanish_blogs2/interspersed_20_40/'
     logger.info('Loading text file.')
     corpus = Text.loadFromFile(path_prefix + '20_40.pickle')
     assert isinstance(corpus, Text)
 
     logger.info('Chunking.')
-    chunk_size = 20
     chunk = Chunk()
     ids, sentences = corpus.fixed_length_chunk(chunk_size)
     num_sentences = {}
@@ -307,7 +338,7 @@ def main():
     for author, num in num_sentences.items():
         logger.info(str.format('{} sentences: {}', author, num))
 
-    chunks = chunk.fixed_length_chunk(chunk_size)
+    chunks = chunk.generate(chunk_size)
     logger.info(str.format('Number of chunks: {}, chunk size: {}', len(chunks), chunk_size))
 
     logger.info('Loading features.')
@@ -328,7 +359,7 @@ def main():
     trans_chunks = []
     for chunk in chunks:
         trans_chunks.append(chunk['text'])
-    vectors = feature.vectorize(trans_chunks)
+    vectors = feature.vectorize(trans_chunks, features)
     logger.info(str.format('Number of features: {}', len(vectors[0])))
 
     logger.info('Removing features.')
