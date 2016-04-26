@@ -33,7 +33,8 @@ class Text(object):
             lower = i
             upper = min(len(self.Sentences), i + chunk_size)
             if self.Verbose:
-                print("Fetching parse for setences: %d-%d of %d" % (lower, upper, len(self.Sentences)) )
+                print("Fetching parse for setences: %d-%d of %d" % (lower, upper, len(self.Sentences)))
+            cnlp = StanfordCoreNLP()
             newWords, newTags = cnlp.parse(' '.join(self.Sentences[lower:upper]))
             self.Words += newWords
             self.Tags += newTags

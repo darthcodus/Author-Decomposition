@@ -4,7 +4,8 @@ import requests
 
 
 class StanfordCoreNLP:
-    def __init__(self, server_url='http://192.241.215.92:8011'):
+    def __init__(self, server_url='http://localhost:8011'):
+        # server_url='http://192.241.215.92:8011'
         assert isinstance(server_url, str)
         self.server_url = server_url
 

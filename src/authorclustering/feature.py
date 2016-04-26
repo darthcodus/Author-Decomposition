@@ -2,6 +2,7 @@
 import argparse
 import glob
 import logging
+import os
 from copy import deepcopy
 from multiprocessing.pool import Pool
 
@@ -22,10 +23,12 @@ class Feature:
         self.logger.setLevel(logging.INFO)
         self.logger.addHandler(handler)
 
-    def build_model(self, input_dir, word_path=None, biword_path=None,
-                    triword_path=None, char_ngram_path=None, pos_path=None,
-                    bipos_path=None, tripos_path=None, fourpos_path=None):
-        assert isinstance(input_dir, str)
+    def build_model(self, input_path, meta_path=None,
+                    word_path=None, biword_path=None, triword_path=None,
+                    char_ngram_path=None, pos_path=None, bipos_path=None,
+                    tripos_path=None, fourpos_path=None):
+        assert isinstance(input_path, str)
+        assert isinstance(meta_path, str) or meta_path is None
         assert isinstance(word_path, str) or word_path is None
         assert isinstance(biword_path, str) or biword_path is None
         assert isinstance(triword_path, str) or triword_path is None
@@ -35,22 +38,30 @@ class Feature:
         assert isinstance(tripos_path, str) or tripos_path is None
         assert isinstance(fourpos_path, str) or fourpos_path is None
 
-        input_paths = str.format('{}/*/*', input_dir)
         chunks = []
         paragraphs = []
-        texts = ''
-
         self.logger.info('Loading corpora...')
 
-        for file_path in glob.glob(input_paths):
-            with open(file_path, 'r', encoding='utf-8') as file:
+        if os.path.isdir(input_path):
+            texts = ''
+            input_paths = str.format('{}/*/*', input_path)
+
+            for file_path in glob.glob(input_paths):
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    for line in file:
+                        paragraphs.append(line)
+                        if len(texts) + len(line) >= 100000:
+                            chunks.append(texts)
+                            texts = ''
+                        texts += line
+            chunks.append(texts)
+        elif os.path.isfile(input_path):
+            with open(input_path, 'r', encoding='utf-8') as file:
                 for line in file:
                     paragraphs.append(line)
-                    if len(texts) + len(line) >= 100000:
-                        chunks.append(texts)
-                        texts = ''
-                    texts += line
-        chunks.append(texts)
+                    chunks.append(line)
+        else:
+            raise Exception(str.format('{} is not a directory nor a file.', input_path))
 
         words = []
         biwords = []
@@ -170,7 +181,8 @@ class Feature:
 
 def main():
     parser = argparse.ArgumentParser(description='This generates feature metadata.')
-    parser.add_argument('-t', metavar='<../corpora/spanish_blogs2>', dest='input_path', help='Paths to folder containing texts', required=True)
+    parser.add_argument('-t', metavar='<../corpora/spanish_blogs2>', dest='input_path', help='Paths to a file or a folder containing texts', required=True)
+    parser.add_argument('-m', metavar='<meta_file.txt>', dest='meta_file', help='Paths to a human-readable meta file', required=False)
     parser.add_argument('-url', metavar='<192.241.215.92>', dest='url', help='CoreNLP server URL', required=False)
     parser.add_argument('-word', metavar='<output_word.txt>', dest='word_file', help='Word frequency output file', required=False)
     parser.add_argument('-biword', metavar='<output_biword.txt>', dest='biword_file', help='Word bigram output file', required=False)
@@ -184,6 +196,7 @@ def main():
 
     input_path = args.input_path
     word_file = args.word_file
+    meta_file = args.meta_file
     biword_file = args.biword_file
     triword_file = args.triword_file
     char_file = args.char_file
@@ -191,13 +204,23 @@ def main():
     bipos_file = args.bipos_file
     tripos_file = args.tripos_file
     fourpos_file = args.fourpos_file
+
     url = '192.241.215.92'
     if args.url is not None:
         url = args.url
+
     nlp = StanfordCoreNLP(str.format('http://{}:8011', url))
     wf = Feature(nlp)
-    wf.build_model(input_path, word_file, biword_file, triword_file, char_file,
-                   pos_file, bipos_file, tripos_file, fourpos_file)
+    wf.build_model(input_path=input_path,
+                   word_path=word_file,
+                   meta_path=meta_file,
+                   biword_path=biword_file,
+                   triword_path=triword_file,
+                   char_ngram_path=char_file,
+                   pos_path=pos_file,
+                   bipos_path=bipos_file,
+                   tripos_path=tripos_file,
+                   fourpos_path=fourpos_file)
 
 
 if __name__ == '__main__':

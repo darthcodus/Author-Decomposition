@@ -7,6 +7,7 @@ from sklearn.cluster import SpectralClustering, KMeans
 from sklearn.feature_selection import VarianceThreshold
 
 from authorclustering.corenlp import StanfordCoreNLP
+from authorclustering.multi_author_text import Text
 
 
 class Corpus:
@@ -43,7 +44,7 @@ class Chunk:
         for sentence in sentences:
             self.sentences.append({'author': author, 'text': sentence})
 
-    def simple_concat(self, size):
+    def fixed_length_chunk(self, size):
         assert isinstance(size, int)
         if size <= 0:
             raise Exception('Invalid chunk size less than 0.')
@@ -154,8 +155,8 @@ class Feature:
                 #              self.word_bigrams, self.postag_trigrams, self.postag_fourgrams))
 
                 args.append((chunk, tuple(parsed_words.get(i)), tuple(parsed_postags.get(i)),
-                             self.words, self.char_ngrams, None, None,
-                             self.word_bigrams, self.postag_trigrams, None))
+                             None, None, None, None,
+                             self.word_bigrams, None, None))
             results = pool.starmap(Feature._parallel_vectorize, args)
             vectors.extend(results)
         return vectors
@@ -282,42 +283,42 @@ def main():
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
 
-    logger.info('Loading corpus 1.')
-    corpus1 = Corpus()
-    corpus1.add_file('../models/spanish_blogs2/alejandro-nieto-gonzalez.txt')
-    logger.info(str.format('Corpus 1, sentences: {}', len(corpus1.sentences)))
-
-    logger.info('Loading corpus 2.')
-    corpus2 = Corpus()
-    corpus2.add_file('../models/spanish_blogs2/aurelio-jimenez.txt')
-    logger.info(str.format('Corpus 2 sentences: {}', len(corpus2.sentences)))
-
-    logger.info('Loading corpus 3.')
-    corpus3 = Corpus()
-    corpus3.add_file('../models/spanish_blogs2/javier-j-navarro.txt')
-    logger.info(str.format('Corpus 3 sentences: {}', len(corpus3.sentences)))
+    path_prefix = '../models/spanish_blogs2/interspersed_20_40/'
+    logger.info('Loading text file.')
+    corpus = Text.loadFromFile(path_prefix + '20_40.pickle')
+    assert isinstance(corpus, Text)
 
     logger.info('Chunking.')
-    chunk = Chunk()
-    chunk.append_sentences('alejandro-nieto-gonzalez', corpus1.sentences)
-    chunk.append_sentences('aurelio-jimenez', corpus2.sentences)
-    chunk.append_sentences('javier-j-navarro', corpus3.sentences)
-
-    del corpus1, corpus2, corpus3
-
     chunk_size = 20
-    chunks = chunk.simple_concat(chunk_size)
+    chunk = Chunk()
+    ids, sentences = corpus.fixed_length_chunk(chunk_size)
+    num_sentences = {}
+
+    for id, sentence in zip(ids, sentences):
+        assert isinstance(id, list)
+        assert isinstance(sentence, list)
+
+        for i, s in zip(id, sentence):
+            author = corpus.getAuthorForSentenceIndex(i)
+            chunk.append_sentences(author, [s])
+            n = num_sentences.get(author, 0)
+            num_sentences[author] = n + 1
+
+    for author, num in num_sentences.items():
+        logger.info(str.format('{} sentences: {}', author, num))
+
+    chunks = chunk.fixed_length_chunk(chunk_size)
     logger.info(str.format('Number of chunks: {}, chunk size: {}', len(chunks), chunk_size))
 
     logger.info('Loading features.')
     feature = Feature()
-    word_path = '../models/spanish_blogs2/output_word.txt'
-    word_bigram_path = '../models/spanish_blogs2/output_biword.txt'
-    char_ngram_path = '../models/spanish_blogs2/output_char.txt'
-    postag_path = '../models/spanish_blogs2/output_pos.txt'
-    postag_bigram_path = '../models/spanish_blogs2/output_bipos.txt'
-    postag_trigram_path = '../models/spanish_blogs2/output_tripos.txt'
-    postag_fourgram_path = '../models/spanish_blogs2/output_4pos.txt'
+    word_path = path_prefix + 'output_word.txt'
+    word_bigram_path = path_prefix + 'output_biword.txt'
+    char_ngram_path = path_prefix + 'output_char.txt'
+    postag_path = path_prefix + 'output_pos.txt'
+    postag_bigram_path = path_prefix + 'output_bipos.txt'
+    postag_trigram_path = path_prefix + 'output_tripos.txt'
+    postag_fourgram_path = path_prefix + 'output_4pos.txt'
     feature.load(word_path=word_path, word_bigram_path=word_bigram_path,
                  char_ngram_path=char_ngram_path, postag_path=postag_path,
                  postag_bigram_path=postag_bigram_path, postag_trigram_path=postag_trigram_path,
