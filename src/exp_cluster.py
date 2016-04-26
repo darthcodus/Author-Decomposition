@@ -3,9 +3,14 @@ import argparse
 import logging
 from collections import Counter
 from multiprocessing.pool import Pool
+
+import numpy
+from sklearn import metrics
+
 from sklearn.cluster import SpectralClustering, KMeans
 
 from sklearn.feature_selection import VarianceThreshold
+from sklearn.metrics.pairwise import cosine_similarity, pairwise_distances
 
 from authorclustering.corenlp import StanfordCoreNLP
 from authorclustering.multi_author_text import Text
@@ -252,7 +257,7 @@ class Evaluation:
     def purity(labels, chunks):
         assert isinstance(chunks, list)
 
-        result_text = ''
+        result_text = '\n'
         result_text += str.format('Num of labels: {}\n', len(labels))
         result_text += str.format('Num of chunks: {}\n', len(chunks))
 
@@ -278,7 +283,85 @@ class Evaluation:
             )
 
         total_purity = (1 / len(labels)) * sum_majority
-        result_text += str.format('Total purity: {}\n', total_purity)
+        result_text += str.format('Overall purity: {}\n', total_purity)
+        return result_text
+
+    @staticmethod
+    def silhouette_coefficient(vectors, labels):
+        coefficient = metrics.silhouette_score(vectors, labels, metric='euclidean')
+        return str.format('\nSilhouette Coefficient: {}\n', coefficient)
+
+    @staticmethod
+    def average_cosine_distance(vectors, labels):
+        assert len(vectors) == len(labels)
+
+        labeled_vectors = {}
+        for vector, label in zip(vectors, labels):
+            vector_list = labeled_vectors.get(label, list())
+            vector_list.append(vector)
+            labeled_vectors[label] = vector_list
+
+        result_text = '\n'
+        overall_avg = 0
+        num_label = 0
+
+        for label in labeled_vectors.keys():
+            vector_list = labeled_vectors.get(label)
+            distances = pairwise_distances(numpy.array(vector_list), metric='cosine', n_jobs=12)
+
+            dumps = []
+            for i in range(len(distances)):
+                for j in range(i):
+                    dumps.append(distances[i][j])
+
+            mean = numpy.mean(dumps)
+            overall_avg += mean
+            num_label += 1
+            result_text += str.format(
+                'Cluster id {} average cosine distance: {}\n', label, mean)
+
+        result_text += str.format(
+            'Overall average cosine distance: {}\n', overall_avg / num_label)
+        return result_text
+
+    @staticmethod
+    def cosine_similarity(vectors, labels):
+        """
+        DO NOT USE, NOT DONE YET
+        """
+        assert len(vectors) == len(labels)
+
+        labeled_vectors = {}
+        for vector, label in zip(vectors, labels):
+            vector_list = labeled_vectors.get(label, list())
+            vector_list.append(vector)
+            labeled_vectors[label] = vector_list
+
+        result_text = '\n'
+        overall_min = 0
+        num_label = 0
+
+        for label in labeled_vectors.keys():
+            vector_list = labeled_vectors.get(label)
+            similarity = cosine_similarity(numpy.array(vector_list))
+            distances = pairwise_distances(numpy.array(vector_list), metric='euclidean', n_jobs=12)
+            for i in range(len(distances)):
+                distances[i][i] = float('Inf')
+
+            min_distances = []
+            for i, distance in enumerate(distances):
+                min_distance = float('Inf')
+                for j, d in enumerate(distance):
+                    min_distance = min(min_distance, d)
+                min_distances.append(min_distance)
+
+            num_label += 1
+            overall_min += numpy.mean(min_distances)
+            result_text += str.format(
+                'Cluster id {} cosine similarity: {}\n', label, numpy.mean(min_distances))
+
+        result_text += str.format(
+            'Overall cosine similarity: {}\n', overall_min / num_label)
         return result_text
 
 
@@ -294,15 +377,17 @@ class CommandLineParser:
         metavar = 'wWcpPT'
         parser = argparse.ArgumentParser()
         parser.add_argument('features', metavar=metavar, nargs='?', help=feature_help)
-        parser.add_argument('-c', metavar='20', dest='chunk_size', type=int, required=True)
+        parser.add_argument('-s', metavar='20', dest='chunk_size', type=int, required=True)
+        parser.add_argument('-c', metavar='3', dest='n_clusters', type=int, required=True)
         args = parser.parse_args()
         features = args.features
         chunk_size = args.chunk_size
+        n_clusters = args.n_clusters
 
         if not any([f in metavar for f in features]):
             parser.print_help()
             exit()
-        return features, chunk_size
+        return features, chunk_size, n_clusters
 
 
 def main():
@@ -313,7 +398,7 @@ def main():
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
 
-    features, chunk_size = CommandLineParser.parse()
+    features, chunk_size, n_clusters = CommandLineParser.parse()
 
     path_prefix = '../models/spanish_blogs2/interspersed_20_40/'
     logger.info('Loading text file.')
@@ -367,7 +452,6 @@ def main():
     logger.info(str.format('Number of features: {}', len(vectors[0])))
 
     logger.info('Clustering.')
-    n_clusters = 3
     n_neighbors = int(len(chunks) / n_clusters - (n_clusters * 0.1))
     clustering = SpectralClustering(n_clusters=n_clusters,
                                     affinity='nearest_neighbors',
@@ -376,8 +460,14 @@ def main():
 
     logger.info('Evaluating.')
     evaluation = Evaluation()
-    result = evaluation.purity(labels, chunks)
-    logger.info(str.format('==RESULT==\n{}', result))
+    purity = evaluation.purity(labels, chunks)
+    logger.info(str.format('==RESULT=='))
+    logger.info(str.format('{}', purity))
+
+    min_distance = evaluation.average_cosine_distance(vectors, labels)
+    logger.info(str.format('{}', min_distance))
+    # coefficient = evaluation.silhouette_coefficient(vectors, labels)
+    # logger.info(str.format('Silhouette Coefficient: {}', coefficient))
 
     logger.info('Done.')
 
