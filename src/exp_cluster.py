@@ -10,7 +10,7 @@ from sklearn import metrics
 from sklearn.cluster import SpectralClustering, KMeans
 
 from sklearn.feature_selection import VarianceThreshold
-from sklearn.metrics.pairwise import cosine_similarity, pairwise_distances
+from sklearn.metrics.pairwise import cosine_similarity, pairwise_distances, pairwise_kernels
 
 from authorclustering.corenlp import StanfordCoreNLP
 from authorclustering.multi_author_text import Text
@@ -58,21 +58,25 @@ class Chunk:
         chunks = []
         authors = []
         texts = ''
+
         for i, sentence in enumerate(self.sentences, start=1):
             assert isinstance(sentence, dict)
-            if i % size == 0:
+            texts += sentence['text'] + ' '
+            authors.append(sentence['author'])
+            if size == 1:
+                continue
+            elif i % size == 0 and size != 1:
                 chunks.append({'author': list(authors), 'text': texts})
                 authors.clear()
                 texts = ''
-            else:
-                authors.append(sentence['author'])
-                texts += sentence['text'] + ' '
-        chunks.append({'author': list(authors), 'text': texts})
+        if len(authors) > 0:
+            chunks.append({'author': list(authors), 'text': texts})
         return chunks
 
 
 class Feature:
     def __init__(self):
+        self.most_common_words = set()
         self.words = set()
         self.word_bigrams = set()
         self.char_ngrams = set()
@@ -86,11 +90,16 @@ class Feature:
              postag_trigram_path=None, postag_fourgram_path=None):
         if word_path is not None:
             assert isinstance(word_path, str)
+            words = {}
             with open(word_path, 'r', encoding='utf=8') as file:
                 for line in file:
                     elements = line.split()
                     assert len(elements) == 2
                     self.words.add(elements[0])
+                    words[elements[0]] = elements[1]
+
+            for (word, num) in Counter(words).most_common(500):
+                self.most_common_words.add(word)
 
         if word_bigram_path is not None:
             assert isinstance(word_bigram_path, str)
@@ -148,6 +157,7 @@ class Feature:
 
         parsed_words = {}
         parsed_postags = {}
+
         with Pool() as pool:
             results = pool.map(Feature._parallel_parse, chunks)
             for i, (words, postags) in enumerate(results):
@@ -286,84 +296,6 @@ class Evaluation:
         result_text += str.format('Overall purity: {}\n', total_purity)
         return result_text
 
-    @staticmethod
-    def silhouette_coefficient(vectors, labels):
-        coefficient = metrics.silhouette_score(vectors, labels, metric='euclidean')
-        return str.format('\nSilhouette Coefficient: {}\n', coefficient)
-
-    @staticmethod
-    def average_cosine_distance(vectors, labels):
-        assert len(vectors) == len(labels)
-
-        labeled_vectors = {}
-        for vector, label in zip(vectors, labels):
-            vector_list = labeled_vectors.get(label, list())
-            vector_list.append(vector)
-            labeled_vectors[label] = vector_list
-
-        result_text = '\n'
-        overall_avg = 0
-        num_label = 0
-
-        for label in labeled_vectors.keys():
-            vector_list = labeled_vectors.get(label)
-            distances = pairwise_distances(numpy.array(vector_list), metric='cosine', n_jobs=12)
-
-            dumps = []
-            for i in range(len(distances)):
-                for j in range(i):
-                    dumps.append(distances[i][j])
-
-            mean = numpy.mean(dumps)
-            overall_avg += mean
-            num_label += 1
-            result_text += str.format(
-                'Cluster id {} average cosine distance: {}\n', label, mean)
-
-        result_text += str.format(
-            'Overall average cosine distance: {}\n', overall_avg / num_label)
-        return result_text
-
-    @staticmethod
-    def cosine_similarity(vectors, labels):
-        """
-        DO NOT USE, NOT DONE YET
-        """
-        assert len(vectors) == len(labels)
-
-        labeled_vectors = {}
-        for vector, label in zip(vectors, labels):
-            vector_list = labeled_vectors.get(label, list())
-            vector_list.append(vector)
-            labeled_vectors[label] = vector_list
-
-        result_text = '\n'
-        overall_min = 0
-        num_label = 0
-
-        for label in labeled_vectors.keys():
-            vector_list = labeled_vectors.get(label)
-            similarity = cosine_similarity(numpy.array(vector_list))
-            distances = pairwise_distances(numpy.array(vector_list), metric='euclidean', n_jobs=12)
-            for i in range(len(distances)):
-                distances[i][i] = float('Inf')
-
-            min_distances = []
-            for i, distance in enumerate(distances):
-                min_distance = float('Inf')
-                for j, d in enumerate(distance):
-                    min_distance = min(min_distance, d)
-                min_distances.append(min_distance)
-
-            num_label += 1
-            overall_min += numpy.mean(min_distances)
-            result_text += str.format(
-                'Cluster id {} cosine similarity: {}\n', label, numpy.mean(min_distances))
-
-        result_text += str.format(
-            'Overall cosine similarity: {}\n', overall_min / num_label)
-        return result_text
-
 
 class CommandLineParser:
     @staticmethod
@@ -400,9 +332,9 @@ def main():
 
     features, chunk_size, n_clusters = CommandLineParser.parse()
 
-    path_prefix = '../models/spanish_blogs2/interspersed_20_40/'
+    path_prefix = '../models/baseline/'
     logger.info('Loading text file.')
-    corpus = Text.loadFromFile(path_prefix + '20_40.pickle')
+    corpus = Text.loadFromFile(path_prefix + 'baseline.pickle')
     assert isinstance(corpus, Text)
 
     logger.info('Chunking.')
@@ -434,7 +366,7 @@ def main():
     postag_path = path_prefix + 'output_pos.txt'
     postag_bigram_path = path_prefix + 'output_bipos.txt'
     postag_trigram_path = path_prefix + 'output_tripos.txt'
-    postag_fourgram_path = path_prefix + 'output_4pos.txt'
+    postag_fourgram_path = None
     feature.load(word_path=word_path, word_bigram_path=word_bigram_path,
                  char_ngram_path=char_ngram_path, postag_path=postag_path,
                  postag_bigram_path=postag_bigram_path, postag_trigram_path=postag_trigram_path,
@@ -452,22 +384,22 @@ def main():
     logger.info(str.format('Number of features: {}', len(vectors[0])))
 
     logger.info('Clustering.')
-    n_neighbors = int(len(chunks) / n_clusters - (n_clusters * 0.1))
-    clustering = SpectralClustering(n_clusters=n_clusters,
-                                    affinity='nearest_neighbors',
-                                    n_neighbors=n_neighbors)
-    labels = clustering.fit_predict(vectors)
+
+    affinity_matrix = pairwise_kernels(numpy.array(vectors), metric='cosine', n_jobs=12)
+    clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed')
+    clustering = clustering.fit(affinity_matrix)
+    labels = clustering.fit_predict(affinity_matrix)
+
+    # n_neighbors = int(len(chunks) / n_clusters - (n_clusters * 0.1))
+    # clustering = SpectralClustering(n_clusters=n_clusters,
+    #                                 affinity='nearest_neighbors',
+    #                                 n_neighbors=n_neighbors)
 
     logger.info('Evaluating.')
     evaluation = Evaluation()
     purity = evaluation.purity(labels, chunks)
     logger.info(str.format('==RESULT=='))
     logger.info(str.format('{}', purity))
-
-    min_distance = evaluation.average_cosine_distance(vectors, labels)
-    logger.info(str.format('{}', min_distance))
-    # coefficient = evaluation.silhouette_coefficient(vectors, labels)
-    # logger.info(str.format('Silhouette Coefficient: {}', coefficient))
 
     logger.info('Done.')
 
