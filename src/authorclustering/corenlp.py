@@ -36,7 +36,7 @@ class StanfordCoreNLP:
         """
         assert isinstance(text, str)
         if text.strip() == '':
-            return []
+            return [], []
 
         output = self._annotate(text, properties={
             "annotators": "tokenize,ssplit,pos",
