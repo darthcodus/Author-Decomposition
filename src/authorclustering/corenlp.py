@@ -22,7 +22,8 @@ class StanfordCoreNLP:
         # texts should be encoded to deal with unicode.
         # maximum length of data is 100k.
         data = text.encode()
-        r = requests.post(self.server_url, params={'properties': str(properties)}, data=data)
+        r = requests.post(self.server_url, params={'properties': str(properties)}, data=data,
+                          headers={'Connection': 'close'})
         output = r.text
         output = json.loads(output, encoding='utf-8', strict=True)
         return output
