@@ -5,11 +5,13 @@ from collections import Counter
 from multiprocessing.pool import Pool
 
 import numpy
+from matplotlib import pyplot
 from sklearn import metrics
 
 from sklearn.cluster import SpectralClustering, KMeans
 
 from sklearn.feature_selection import VarianceThreshold
+from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_similarity, pairwise_distances, pairwise_kernels
 
 from authorclustering.corenlp import StanfordCoreNLP
@@ -271,10 +273,7 @@ class Evaluation:
     def purity(labels, chunks):
         assert isinstance(chunks, list)
 
-        result_text = '\n'
-        result_text += str.format('Num of labels: {}\n', len(labels))
-        result_text += str.format('Num of chunks: {}\n', len(chunks))
-
+        result_text = '===========================================\n'
         chunk_majorities = []
         for chunk in chunks:
             author = Counter(chunk['author']).most_common(1)[0][0]
@@ -298,7 +297,13 @@ class Evaluation:
 
         total_purity = (1 / len(labels)) * sum_majority
         result_text += str.format('Overall purity: {}\n', total_purity)
+        result_text += '==================================================================='
         return result_text
+
+    @staticmethod
+    def silhouette_score(labels, matrix):
+        score = silhouette_score(matrix, labels, metric='precomputed')
+        return str.format('Silhouette score: {}', score)
 
 
 class CommandLineParser:
@@ -336,7 +341,7 @@ def main():
 
     features, chunk_size, n_clusters = CommandLineParser.parse()
 
-    path_prefix = '../models/spanish_blogs3/3authors_1_200'
+    path_prefix = '../models/spanish_blogs3/4authors_1_200'
     logger.info('Loading text file.')
     corpus = Text.loadFromFile(path_prefix + '.pickle')
     assert isinstance(corpus, Text)
@@ -396,8 +401,7 @@ def main():
     logger.info('Evaluating - cosine similarity.')
     evaluation = Evaluation()
     purity = evaluation.purity(labels, chunks)
-    logger.info(str.format('==RESULT=='))
-    logger.info(str.format('{}', purity))
+    logger.info(purity)
 
     logger.info('Spectral clustering - nearest neighbors.')
     n_neighbors = int(len(chunks) / n_clusters - (n_clusters * 0.1))
@@ -409,8 +413,7 @@ def main():
     logger.info('Evaluating - nearest neighbors.')
     evaluation = Evaluation()
     purity = evaluation.purity(labels, chunks)
-    logger.info(str.format('==RESULT=='))
-    logger.info(str.format('{}', purity))
+    logger.info(purity)
 
     logger.info('Done.')
 
