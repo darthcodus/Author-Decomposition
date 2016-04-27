@@ -60,7 +60,12 @@ class Chunk:
         texts = ''
         for i, sentence in enumerate(self.sentences, start=1):
             assert isinstance(sentence, dict)
-            if i % size == 0:
+            if size == 1:
+                authors.clear()
+                authors.append(sentence['author'])
+                texts = sentence['text']
+                chunks.append({'author': list(authors), 'text': texts})
+            elif i % size == 0 and size != 1:
                 chunks.append({'author': list(authors), 'text': texts})
                 authors.clear()
                 texts = ''
@@ -344,7 +349,7 @@ class Evaluation:
         for label in labeled_vectors.keys():
             vector_list = labeled_vectors.get(label)
             similarity = cosine_similarity(numpy.array(vector_list))
-            distances = pairwise_distances(numpy.array(vector_list), metric='euclidean', n_jobs=12)
+            distances = pairwise_distances(numpy.array(vector_list), metric='cosine', n_jobs=12)
             for i in range(len(distances)):
                 distances[i][i] = float('Inf')
 
@@ -456,6 +461,8 @@ def main():
     clustering = SpectralClustering(n_clusters=n_clusters,
                                     affinity='nearest_neighbors',
                                     n_neighbors=n_neighbors)
+
+    # cosines = pairwise_distances(numpy.array(vectors))
     labels = clustering.fit_predict(vectors)
 
     logger.info('Evaluating.')
@@ -464,8 +471,8 @@ def main():
     logger.info(str.format('==RESULT=='))
     logger.info(str.format('{}', purity))
 
-    min_distance = evaluation.average_cosine_distance(vectors, labels)
-    logger.info(str.format('{}', min_distance))
+    # min_distance = evaluation.average_cosine_distance(vectors, labels)
+    # logger.info(str.format('{}', min_distance))
     # coefficient = evaluation.silhouette_coefficient(vectors, labels)
     # logger.info(str.format('Silhouette Coefficient: {}', coefficient))
 
