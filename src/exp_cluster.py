@@ -384,7 +384,6 @@ def main():
     logger.info(str.format('Number of features: {}', len(vectors[0])))
 
     logger.info('Clustering.')
-
     affinity_matrix = pairwise_kernels(numpy.array(vectors), metric='cosine', n_jobs=12)
     clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed')
     clustering = clustering.fit(affinity_matrix)
@@ -400,7 +399,6 @@ def main():
     purity = evaluation.purity(labels, chunks)
     logger.info(str.format('==RESULT=='))
     logger.info(str.format('{}', purity))
-
     logger.info('Done.')
 
 
