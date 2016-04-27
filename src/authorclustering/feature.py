@@ -10,10 +10,10 @@ from .corenlp import StanfordCoreNLP
 
 
 class Feature:
-    def __init__(self, nlp, num_gram=4):
-        assert isinstance(nlp, StanfordCoreNLP)
+    def __init__(self, url, num_gram=4):
+        assert isinstance(url, str)
         assert isinstance(num_gram, int)
-        self.nlp = nlp
+        self.url = url
         self.num_gram = num_gram
 
         formatter = logging.Formatter('%(asctime)s %(message)s')
@@ -77,7 +77,7 @@ class Feature:
         with Pool() as pool:
             args = []
             for chunk in chunks:
-                args.append((deepcopy(self.nlp), chunk))
+                args.append((self.url, chunk))
 
             results = pool.starmap(Feature._multi_run, args)
             for result in results:
@@ -172,9 +172,10 @@ class Feature:
                 file.write(str.format('{} {}\n', word, num))
 
     @staticmethod
-    def _multi_run(nlp, texts):
-        assert isinstance(nlp, StanfordCoreNLP)
+    def _multi_run(url, texts):
+        assert isinstance(url, str)
         assert isinstance(texts, str)
+        nlp = StanfordCoreNLP(str.format('http://{}:8011', url))
         words, postags = nlp.parse(texts)
         return words, postags
 
@@ -209,8 +210,7 @@ def main():
     if args.url is not None:
         url = args.url
 
-    nlp = StanfordCoreNLP(str.format('http://{}:8011', url))
-    wf = Feature(nlp)
+    wf = Feature(url)
     wf.build_model(input_path=input_path,
                    word_path=word_file,
                    meta_path=meta_file,

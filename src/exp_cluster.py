@@ -61,14 +61,18 @@ class Chunk:
 
         for i, sentence in enumerate(self.sentences, start=1):
             assert isinstance(sentence, dict)
-            texts += sentence['text'] + ' '
-            authors.append(sentence['author'])
             if size == 1:
-                continue
+                texts = sentence['text']
+                authors.append(sentence['author'])
+                chunks.append({'author': list(authors), 'text': texts})
+                authors.clear()
             elif i % size == 0 and size != 1:
                 chunks.append({'author': list(authors), 'text': texts})
                 authors.clear()
                 texts = ''
+            else:
+                texts += sentence['text'] + ' '
+                authors.append(sentence['author'])
         if len(authors) > 0:
             chunks.append({'author': list(authors), 'text': texts})
         return chunks
@@ -316,7 +320,7 @@ class CommandLineParser:
         chunk_size = args.chunk_size
         n_clusters = args.n_clusters
 
-        if not any([f in metavar for f in features]):
+        if not all([f in metavar for f in features]):
             parser.print_help()
             exit()
         return features, chunk_size, n_clusters
@@ -332,9 +336,9 @@ def main():
 
     features, chunk_size, n_clusters = CommandLineParser.parse()
 
-    path_prefix = '../models/baseline/'
+    path_prefix = '../models/spanish_blogs3/3authors_1_200'
     logger.info('Loading text file.')
-    corpus = Text.loadFromFile(path_prefix + 'baseline.pickle')
+    corpus = Text.loadFromFile(path_prefix + '.pickle')
     assert isinstance(corpus, Text)
 
     logger.info('Chunking.')
@@ -360,12 +364,12 @@ def main():
 
     logger.info('Loading features.')
     feature = Feature()
-    word_path = path_prefix + 'output_word.txt'
-    word_bigram_path = path_prefix + 'output_biword.txt'
-    char_ngram_path = path_prefix + 'output_char.txt'
-    postag_path = path_prefix + 'output_pos.txt'
-    postag_bigram_path = path_prefix + 'output_bipos.txt'
-    postag_trigram_path = path_prefix + 'output_tripos.txt'
+    word_path = path_prefix + '_word.txt'
+    word_bigram_path = path_prefix + '_biword.txt'
+    char_ngram_path = path_prefix + '_char.txt'
+    postag_path = path_prefix + '_pos.txt'
+    postag_bigram_path = path_prefix + '_bipos.txt'
+    postag_trigram_path = path_prefix + '_tripos.txt'
     postag_fourgram_path = None
     feature.load(word_path=word_path, word_bigram_path=word_bigram_path,
                  char_ngram_path=char_ngram_path, postag_path=postag_path,
@@ -383,22 +387,31 @@ def main():
     vectors = feature.remove_features(vectors)
     logger.info(str.format('Number of features: {}', len(vectors[0])))
 
-    logger.info('Clustering.')
+    logger.info('Spectral clustering - cosine similarity.')
     affinity_matrix = pairwise_kernels(numpy.array(vectors), metric='cosine', n_jobs=12)
     clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed')
     clustering = clustering.fit(affinity_matrix)
     labels = clustering.fit_predict(affinity_matrix)
 
-    # n_neighbors = int(len(chunks) / n_clusters - (n_clusters * 0.1))
-    # clustering = SpectralClustering(n_clusters=n_clusters,
-    #                                 affinity='nearest_neighbors',
-    #                                 n_neighbors=n_neighbors)
-
-    logger.info('Evaluating.')
+    logger.info('Evaluating - cosine similarity.')
     evaluation = Evaluation()
     purity = evaluation.purity(labels, chunks)
     logger.info(str.format('==RESULT=='))
     logger.info(str.format('{}', purity))
+
+    logger.info('Spectral clustering - nearest neighbors.')
+    n_neighbors = int(len(chunks) / n_clusters - (n_clusters * 0.1))
+    clustering = SpectralClustering(n_clusters=n_clusters,
+                                    affinity='nearest_neighbors',
+                                    n_neighbors=n_neighbors)
+    labels = clustering.fit_predict(vectors)
+
+    logger.info('Evaluating - nearest neighbors.')
+    evaluation = Evaluation()
+    purity = evaluation.purity(labels, chunks)
+    logger.info(str.format('==RESULT=='))
+    logger.info(str.format('{}', purity))
+
     logger.info('Done.')
 
 

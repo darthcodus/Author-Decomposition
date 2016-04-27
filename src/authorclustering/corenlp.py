@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import json
+import re
+
 import requests
 
 
@@ -52,6 +54,7 @@ class StanfordCoreNLP:
             for token in sentence['tokens']:
                 word = token['word']
                 pos = token['pos']
+                word = re.sub(r'\s', '', word)
                 words.append(word)
                 postags.append(pos)
         return words, postags
