@@ -6,12 +6,27 @@ import requests
 
 
 class StanfordCoreNLP:
+    """
+    This class is originally developed by Smitha Milli, and modified by Heetae Kim
+    in order to support unicode data and meet the our project needs.
+    """
+
     def __init__(self, server_url='http://192.241.215.92:8011'):
-        # server_url='http://192.241.215.92:8011'
+        """
+        You can specify your own server URL here if you have one.
+        :param server_url: URL to the CoreNLP server.
+        The default is http://192.241.215.92:8011.
+        """
         assert isinstance(server_url, str)
         self.server_url = server_url
 
     def _annotate(self, text, properties):
+        """
+        Sends a RESTful API call to the CoreNLP server.
+        :param text: A text data to be processed.
+        :param properties: Properties that are attached to the url.
+        :return: A JSON text.
+        """
         assert isinstance(text, str)
         assert isinstance(properties, dict)
 
@@ -34,8 +49,8 @@ class StanfordCoreNLP:
         """
         Stanford CoreNLP parses texts and returns tokens
         and their corresponding POS tags.
-        :param text: input texts that are less than 100,000 bytes.
-        :return: a tuple (list of words, list of POS tags)
+        :param text: Input texts that are less than 100,000 bytes.
+        :return: A tuple (list of words, list of POS tags)
         """
         assert isinstance(text, str)
         if text.strip() == '':
@@ -62,8 +77,8 @@ class StanfordCoreNLP:
     def split_sentences(self, text):
         """
         Stanford CoreNLP parses texts and returns sentences as a list
-        :param text: input texts that are less than 100,000 bytes.
-        :return: a list of sentences
+        :param text: Input texts that are less than 100,000 bytes.
+        :return: A list of sentences.
         """
         assert isinstance(text, str)
         text = text.replace('\n', '')
